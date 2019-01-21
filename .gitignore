@@ -1,0 +1,18 @@
+# Eclipse
+.project
+.settings/
+.classpath
+.factorypath
+.apt_generated/
+hs_err_pid*
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+target/

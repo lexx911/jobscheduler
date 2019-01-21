@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<!--<jpa:repositories base-package="de.lit.jobscheduler.dao"/>
+
+	<bean id="jobScheduler" class="de.lit.jobscheduler.JobScheduler"/>
+	<bean class="de.lit.jobscheduler.JobExecutorFactoryBean">
+		<property name="lifecycleCallback" ref="lifecycleCallback" />
+	</bean>-->
+	<bean class="de.lit.jobscheduler.JobSchedulerAutoConfiguration"/>
+
+	<bean class="de.lit.jobscheduler.JobSchedulerTest"/>
+	<bean id="lifecycleCallback" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="de.lit.jobscheduler.JobLifecycleCallback"/>
+	</bean>
+</beans>
