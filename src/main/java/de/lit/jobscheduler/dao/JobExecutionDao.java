@@ -1,17 +1,30 @@
 package de.lit.jobscheduler.dao;
 
-import org.springframework.data.repository.CrudRepository;
-
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface JobExecutionDao extends CrudRepository<JobExecution, Long> {
+public interface JobExecutionDao {
 
-	List<JobExecution> findAllByJobDefinitionAndStatus(JobDefinition job, JobExecution.Status status);
+    /**
+     * Saves a given entity. Use the returned instance for further operations as the save operation might have changed the
+     * entity instance completely.
+     *
+     * @param entity
+     * @return saved entity
+     */
+    JobExecution save(JobExecution entity);
 
-	List<JobExecution> findAllByJobDefinitionName(String name);
+    /**
+     * {@code SELECT * FROM JobExecution WHERE id=?1}
+     */
+    Optional<JobExecution> findById(Long id);
 
-	List<JobExecution> findAllByStatusAndNodeName(JobExecution.Status status, String nodeName);
+    List<JobExecution> findAllByJobDefinitionAndStatus(JobDefinition job, JobExecution.Status status);
+
+    List<JobExecution> findAllByJobDefinitionName(String name);
+
+    List<JobExecution> findAllByStatusAndNodeName(JobExecution.Status status, String nodeName);
 }
