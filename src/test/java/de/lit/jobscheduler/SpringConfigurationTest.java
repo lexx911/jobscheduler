@@ -14,7 +14,7 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@Import({JobSchedulerAutoConfiguration.class})
+@EnableJobScheduler
 public class SpringConfigurationTest {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
