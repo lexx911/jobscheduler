@@ -10,14 +10,13 @@ import java.util.Locale;
 
 /**
  * Customized naming strategy: convert Java camelCase to underscore.
+ * <pre>
  * Example: someColumnId -> SOME_COLUMN_ID
- * 
- * @author zg422al
- *
+ * </pre>
  */
 public class JobsDefaultNamingStrategy extends ImplicitNamingStrategyJpaCompliantImpl {
 
-	protected static String addUnderscores(String name) {
+	protected String addUnderscores(String name) {
 		StringBuilder buf = new StringBuilder(name.replace('.', '_'));
 		for (int i = 1; i < buf.length() - 1; i++) {
 			if ((Character.isLowerCase(buf.charAt(i - 1)) || Character.isDigit(buf.charAt(i - 1)))

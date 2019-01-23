@@ -47,7 +47,7 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 		return instance;
 	}
 
-	protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
+	private BlockingQueue<Runnable> createQueue(int queueCapacity) {
 		if (queueCapacity > 0) {
 			return new LinkedBlockingQueue<>(queueCapacity);
 		} else {
@@ -108,7 +108,7 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 
 	/**
 	 * Set the capacity for the ThreadPoolExecutor's BlockingQueue.
-	 * <p></p>
+	 * <p>
 	 * <b>Please note:</b> The Job Executor schould not be used with a queue because
 	 * all queued Jobs would be marked as <i>running</i> in the job table although
 	 * they are queued and waiting. If the job executor is occupied then further jobs

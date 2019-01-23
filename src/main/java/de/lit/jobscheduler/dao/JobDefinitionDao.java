@@ -13,7 +13,7 @@ public interface JobDefinitionDao {
 	 * Saves a given entity. Use the returned instance for further operations as the save operation might have changed the
 	 * entity instance completely.
 	 *
-	 * @param entity
+	 * @param entity the entity to save
 	 * @return saved entity
 	 */
 	JobDefinition save(JobDefinition entity);
