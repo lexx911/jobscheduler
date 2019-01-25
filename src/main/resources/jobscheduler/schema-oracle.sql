@@ -33,4 +33,13 @@ alter table JOB_EXECUTION add
    constraint FK_EXECUTION_JOB
       foreign key (JOB_NAME) references job on delete cascade;
 
-create sequence job_execution_seq start with 1 increment by 1;
+create sequence JOB_EXECUTION_SEQ start with 1 increment by 1;
+
+/* Granting rights to other application user:
+
+GRANT SELECT,INSERT,UPDATE,DELETE ON JOB TO someuser;
+GRANT SELECT,INSERT,UPDATE,DELETE ON JOB_EXECUTION TO someuser;
+
+GRANT SELECT ON JOB_EXECUTION_SEQ TO someuser;
+
+ */
