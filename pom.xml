@@ -53,12 +53,12 @@
 
     <profiles>
         <profile>
-            <id>release</id>
+            <id>sign</id>
             <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>1.6</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -203,7 +203,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
                 <configuration>
-                    <releaseProfiles>release</releaseProfiles>
+                    <releaseProfiles>release,sign</releaseProfiles>
                 </configuration>
             </plugin>
             <plugin>
