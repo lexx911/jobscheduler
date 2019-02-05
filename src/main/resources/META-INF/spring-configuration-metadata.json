@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "application.jobscheduler.initialDelay",
+      "type": "java.lang.Long",
+      "description": "Initial delay in milliseconds until jobscheduler starts scanning job table and executing jobs. Default: 10000"
+    },
+    {
+      "name": "application.jobscheduler.runinterval",
+      "type": "java.lang.Long",
+      "description": "Interval in milliseconds for scanning job table for next due run. Default: 20000"
+    },
+    {
+      "name": "application.jobexecutor.corepoolsize",
+      "type": "java.lang.Integer",
+      "description": "Minimum number of threads kept alive in the thread execution pool. Default: 1"
+    },
+    {
+      "name": "application.jobexecutor.maxpoolsize",
+      "type": "java.lang.Integer",
+      "description": "Max number of threads in the thread execution pool. Default: 4"
+    }
+  ]
+}
