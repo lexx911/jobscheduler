@@ -25,7 +25,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor {
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private final String nodeName;
+	private String nodeName;
 
 	@Autowired
 	private JobExecutionDao jobExecutionDao;
@@ -174,6 +174,11 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor {
 	}
 
 	@Override
+	public void setNodeName(String nodeName) {
+		this.nodeName = nodeName;
+	}
+
+	@Override
 	public JobInstance findJobInstance(final JobDefinition job) {
 		synchronized (runningJobs) {
 			Optional<JobInstance> found = runningJobs.values().stream()
@@ -200,26 +205,8 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor {
 		}
 	}
 
-	@Override
-	public void zombieCheck(JobExecutionCallback callback) {
-		List<JobExecution> runningExecs = jobExecutionDao.findAllByStatusAndNodeName(RUNNING, nodeName);
-		for (JobExecution exec : runningExecs) {
-			JobInstance inst = findJobInstance(exec.getJobDefinition());
-			if (inst == null) {
-				// check again to be sure. maybe it just finished
-				JobDefinition job = jobExecutionDao.findById(exec.getId())
-						.orElseThrow(IllegalArgumentException::new)
-						.getJobDefinition();
-				if (job.isRunning()) {
-					logger.warn("Found zombie job name={} ({}) execution={}", job.getName(), job.getName(), exec.getId());
-					callback.jobFinished(job);
-				}
-			}
-		}
-	}
-
 	private String evaluateHostname() {
-		String[] envVarsToTry = new String[] { "HOSTNAME", "COMPUTERNAME", "POD_NAME" };
+		String[] envVarsToTry = new String[] { "NODENAME", "HOSTNAME", "COMPUTERNAME", "POD_NAME" };
 		for (String var : envVarsToTry) {
 			if (isNotBlank(System.getenv(var))) {
 				return System.getenv(var);

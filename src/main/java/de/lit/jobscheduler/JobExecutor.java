@@ -44,7 +44,26 @@ public interface JobExecutor {
 	 */
 	JobInstance getJobInstance(Long jobExecutionId);
 
+	/**
+	 * Returns the node name that this JobExecutor uses for {@code JobExecution} entries.
+	 * @return node name
+	 */
 	String getNodeName();
+
+	/**
+	 * JobExecutor evaluates the name of the current node automatically from
+	 * the following environment variables: <pre>
+	 *     NODENAME, HOSTNAME, COMPUTERNAME, POD_NAME
+	 * </pre>
+	 * If none of these variables are set then {@code InetAddress.getLocalHost().getHostName()} is tried.
+	 * <p></p>
+	 * On a cloud infrastructure (cloudfoundry, docker etc.) this often leads to a random generated hostname
+	 * that cannot be used for {@code ConsistenyCheck}. Use {@code setNodeName()} to set a deterministic name.
+	 *
+	 * @see ConsistencyCheck#singleNodeInstanceCheck()
+	 * @param nodeName new node name
+	 */
+	void setNodeName(String nodeName);
 
 	/**
 	 * Find running instance for job definition, if any. Returns {@code null} if
@@ -73,6 +92,4 @@ public interface JobExecutor {
 	 *            JobDefinition
 	 */
 	void abortJobIfRunning(JobDefinition job);
-
-	void zombieCheck(JobExecutionCallback callback);
 }

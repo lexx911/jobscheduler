@@ -86,11 +86,6 @@ public class JobScheduler implements JobExecutionCallback, ApplicationContextAwa
 				(jobTrigger == null || jobTrigger.isActivated(job));
 	}
 
-	@PostConstruct
-	public void zombieCheck() {
-		jobExecutor.zombieCheck(this);
-	}
-
 	@Override
 	public void jobStarted(JobDefinition job, JobExecution jobExecution) {
 		jobDao.updateStartExecution(job.getName(), jobExecution);
