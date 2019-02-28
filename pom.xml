@@ -4,7 +4,7 @@
 
     <groupId>de.laetsch-it.jobscheduler</groupId>
     <artifactId>jobscheduler</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
 
     <name>jobscheduler</name>
     <description>A Database driven Job Scheduler library</description>
@@ -21,7 +21,7 @@
         <url>https://github.com/lexx911/jobscheduler</url>
         <connection>scm:git:https://github.com/lexx911/jobscheduler.git</connection>
         <developerConnection>scm:git:https://github.com/lexx911/jobscheduler.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>jobscheduler-1.0.3</tag>
     </scm>
 
     <developers>
