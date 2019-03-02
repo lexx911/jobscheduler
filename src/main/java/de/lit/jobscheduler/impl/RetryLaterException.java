@@ -1,4 +1,4 @@
-package de.lit.jobscheduler;
+package de.lit.jobscheduler.impl;
 
 import java.util.Date;
 

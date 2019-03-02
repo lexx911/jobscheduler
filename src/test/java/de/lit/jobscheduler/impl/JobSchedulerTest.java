@@ -1,6 +1,7 @@
-package de.lit.jobscheduler;
+package de.lit.jobscheduler.impl;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
+import de.lit.jobscheduler.*;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
@@ -10,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.function.IntPredicate;

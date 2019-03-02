@@ -2,6 +2,7 @@ package de.lit.jobscheduler;
 
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
+import de.lit.jobscheduler.impl.JobInstance;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

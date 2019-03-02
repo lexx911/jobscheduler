@@ -7,13 +7,13 @@
 
 	<!--<jpa:repositories base-package="de.lit.jobscheduler.dao"/>
 
-	<bean id="jobScheduler" class="de.lit.jobscheduler.JobScheduler"/>
-	<bean class="de.lit.jobscheduler.JobExecutorFactoryBean">
+	<bean id="jobScheduler" class="de.lit.jobscheduler.impl.JobScheduler"/>
+	<bean class="de.lit.jobscheduler.impl.JobExecutorFactoryBean">
 		<property name="lifecycleCallback" ref="lifecycleCallback" />
 	</bean>-->
 	<bean class="de.lit.jobscheduler.JobSchedulerAutoConfiguration"/>
 
-	<bean class="de.lit.jobscheduler.JobSchedulerTest"/>
+	<bean class="de.lit.jobscheduler.impl.JobSchedulerTest"/>
 	<bean id="lifecycleCallback" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="de.lit.jobscheduler.JobLifecycleCallback"/>
 	</bean>

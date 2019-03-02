@@ -3,6 +3,8 @@
 
 package de.lit.jobscheduler;
 
+import de.lit.jobscheduler.impl.JobInstance;
+
 public interface JobLifecycleCallback {
 
 	/**

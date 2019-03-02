@@ -1,8 +1,15 @@
 // Copyright (c) 2019 Alexander Lätsch, Lätsch IT Consulting GmbH
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-package de.lit.jobscheduler;
+package de.lit.jobscheduler.impl;
 
+import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.JobCronCalculator;
+import de.lit.jobscheduler.JobTrigger;
+import de.lit.jobscheduler.JobScheduleTrigger;
+import de.lit.jobscheduler.dao.JobDefinitionDao;
+import de.lit.jobscheduler.entity.JobDefinition;
+import de.lit.jobscheduler.entity.JobExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -10,19 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.lit.jobscheduler.dao.JobDefinitionDao;
-import de.lit.jobscheduler.entity.JobDefinition;
-import de.lit.jobscheduler.entity.JobExecution;
-
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.RejectedExecutionException;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -57,11 +55,11 @@ public class JobScheduler implements JobExecutionCallback, ApplicationContextAwa
 					JobScheduler scheduler = appContext.getBean(JobScheduler.class);
 					scheduler.submitJob(job, jobTrigger);
 				} else if (!job.isRunning() && !job.isSuspended() && !job.isDisabled()) {
-					jobDao.updateForNextRun(job.getName(), evalNextRun(job.getCronExpression()));
+					updateNextRun(job);
 				}
 
 			} catch (RejectedExecutionException e) {
-				// executor is full. wait for next schedule cycle
+				logger.debug("executor is full. wait for next schedule cycle.");
 				break;
 			} catch (Exception e) {
 				logger.error("Cannot submit job " + job.getName(), e);
@@ -93,24 +91,22 @@ public class JobScheduler implements JobExecutionCallback, ApplicationContextAwa
 
 	@Override
 	public void jobFinished(JobDefinition job) {
-		jobDao.updateForNextRun(job.getName(), evalNextRun(job.getCronExpression()));
+		updateNextRun(job);
 	}
 
-	public static LocalDateTime evalNextRun(String cronExpression) {
-		if (isNotEmpty(cronExpression)) {
-			String cronExpr = cronExpression;
-
-			// Support for Quartz-like "L"-Notation for Last Day of Month.
-			if (cronExpr.contains("L")) {
-				cronExpr = cronExpr.replace("L", Integer.toString(Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH)));
+	private void updateNextRun(JobDefinition job) {
+		LocalDateTime nextRun;
+		try {
+			JobTrigger trigger = appContext.getBean(job.getTrigger(), JobTrigger.class);
+			if (trigger instanceof JobScheduleTrigger) {
+				nextRun = ((JobScheduleTrigger) trigger).evalNextRun(job);
+			} else {
+				nextRun = JobCronCalculator.eval(job.getCronExpression());
 			}
-			CronSequenceGenerator cron = new CronSequenceGenerator(cronExpr);
-			Date nextDate = cron.next(new Date());
-			return nextDate.toInstant()
-					.atZone(ZoneId.systemDefault())
-					.toLocalDateTime();
+		} catch (Throwable t) {
+			nextRun = JobCronCalculator.eval(job.getCronExpression());
 		}
-		return null;
+		jobDao.updateForNextRun(job.getName(), nextRun);
 	}
 
 	@Override

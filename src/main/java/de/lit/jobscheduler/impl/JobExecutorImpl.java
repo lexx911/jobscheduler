@@ -1,18 +1,21 @@
 // Copyright (c) 2019 Alexander Lätsch, Lätsch IT Consulting GmbH
 // This code is licensed under MIT license (see LICENSE.txt for details)
 
-package de.lit.jobscheduler;
+package de.lit.jobscheduler.impl;
 
+import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.JobLifecycleCallback;
+import de.lit.jobscheduler.JobTrigger;
 import de.lit.jobscheduler.dao.JobExecutionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.annotation.PreDestroy;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -22,7 +25,7 @@ import static de.lit.jobscheduler.entity.JobExecution.Status.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
-public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor {
+public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, DisposableBean {
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private String nodeName;
@@ -220,7 +223,7 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor {
 		}
 	}
 
-	@PreDestroy
+	@Override
 	public void destroy() throws InterruptedException {
 		logger.info("Shutting down JobExecutor");
 		shutdown();
