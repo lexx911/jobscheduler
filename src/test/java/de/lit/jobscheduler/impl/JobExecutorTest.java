@@ -81,6 +81,7 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 	@Before
 	public void setup() {
 		reset(lifecycleMock);
+		((JobExecutorImpl)jobExecutor).setLifecycleCallback(lifecycleMock);
 		execCount = 0;
 	}
 
