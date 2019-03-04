@@ -3,9 +3,9 @@
 
 package de.lit.jobscheduler.impl;
 
-import de.lit.jobscheduler.Job;
 import de.lit.jobscheduler.JobLifecycleCallback;
-import de.lit.jobscheduler.JobTrigger;
+import de.lit.jobscheduler.JobSchedule;
+import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.dao.JobExecutionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
@@ -13,11 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.transaction.Transactional;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -31,15 +32,15 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 	private String nodeName;
 
 	@Autowired
+	private JobDefinitionDao jobDao;
+
+	@Autowired
 	private JobExecutionDao jobExecutionDao;
 
 	@Autowired
 	@SuppressWarnings("unused")
 	// needed as dependency for proper shutdown
 	private PlatformTransactionManager txManager;
-
-	@Autowired
-	private ApplicationContext appContext;
 
 	private JobLifecycleCallback lifecycleCallback;
 
@@ -49,6 +50,18 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 						   ThreadFactory threadFactory, RejectedExecutionHandler handler) {
 		super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 		nodeName = evaluateHostname().toLowerCase();
+	}
+
+	@Override
+	@Transactional
+	public void submitJob(JobInstance instance) throws RejectedExecutionException {
+		JobDefinition job = jobDao.lockJob(instance.getJob().getName());
+		if (job.isRunning() || job.getNextRun().isAfter(LocalDateTime.now())) {
+			logger.debug("Job {} not executed by this thread", job.getName());
+			return;
+		}
+		JobExecutorImpl.this.execute(instance);
+		job.setRunning(true);
 	}
 
 	@Override
@@ -82,12 +95,12 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 				jobInst.setThread(t);
 				jobInst.setStartedTime(System.currentTimeMillis());
 				runningJobs.put(jobExec.getId(), jobInst);
-				jobInst.getCallback().jobStarted(jobInst.getJob(), jobExec);
+				jobDao.updateStartExecution(jobInst.getJob().getName(), jobExec);
 				if (lifecycleCallback != null) lifecycleCallback.jobStarted(jobInst);
 			} catch (Throwable e) {
 				logger.error(jobInst.getJob().getName(), e);
 				jobInst.setError(e);
-				jobInst.getCallback().jobFinished(jobInst.getJob());
+				prepareForNextRun(jobInst);
 				if (lifecycleCallback != null) lifecycleCallback.jobError(jobInst);
 			}
 		}
@@ -97,11 +110,11 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 		synchronized (runningJobs) {
 			JobExecution jobExec = jobExecutionDao.findById(jobInst.getJobExecution().getId())
 					.orElseThrow(IllegalArgumentException::new);
+			JobDefinition job = jobExec.getJobDefinition();
 			try {
-				String jobName = jobExec.getJobDefinition().getName();
 				jobExec.setEndTime(new Date());
 				long t = System.currentTimeMillis() - jobInst.getStartedTime();
-				logger.info("Job \"{}\" completed in {} seconds", jobName, t / 1000.0);
+				logger.info("Job \"{}\" completed in {} seconds", job.getName(), t / 1000.0);
 				Throwable error = jobInst.getError();
 				if (error != null) {
 					logger.error("job " + jobExec.getJobDefinition().getName(), error);
@@ -119,19 +132,23 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 						jobExec.setStatus(SUCCESS);
 					}
 				}
-				jobExecutionDao.save(jobExec);
+				jobExec = jobExecutionDao.save(jobExec);
 				if (lifecycleCallback != null) lifecycleCallback.jobFinished(jobInst);
-				if (jobInst.getTrigger() != null) {
-					jobInst.getTrigger().afterJob(jobInst.getJob(), error);
-				}
 			} catch (Throwable e) {
 				logger.error(jobInst.getJob().getName(), e);
-				jobExecutionDao.save(jobExec);
+				jobExec = jobExecutionDao.save(jobExec);
 			} finally {
 				runningJobs.remove(jobExec.getId());
-				jobInst.getCallback().jobFinished(jobInst.getJob());
 			}
+			prepareForNextRun(jobInst);
 		}
+	}
+
+	public void prepareForNextRun(JobInstance jobInstance) {
+		JobDefinition job = jobInstance.getJob();
+		JobSchedule schedule = jobInstance.getSchedule();
+		LocalDateTime nextRun = schedule.evalNextRun(job);
+		jobDao.updateForNextRun(job.getName(), nextRun);
 	}
 
 	private String formatErrorMessage(JobExecution jobExec, Throwable error) {
@@ -147,18 +164,6 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 			message = message.substring(0, 4000);
 		}
 		return message;
-	}
-
-	@Override
-	public void execute(JobDefinition job, JobTrigger jobTrigger, JobExecutionCallback callback) throws RejectedExecutionException {
-		JobInstance jobInst = new JobInstance(job);
-		jobInst.setCallback(callback);
-		jobInst.setImplementation(appContext.getBean(job.getImplementation(), Job.class));
-		jobInst.setTrigger(jobTrigger);
-		if (jobInst.getTrigger() != null) {
-			jobInst.getTrigger().beforeJob(jobInst.getJob());
-		}
-		super.execute(jobInst);
 	}
 
 	@Override
@@ -209,7 +214,7 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 	}
 
 	private String evaluateHostname() {
-		String[] envVarsToTry = new String[] { "NODENAME", "HOSTNAME", "COMPUTERNAME", "POD_NAME" };
+		String[] envVarsToTry = new String[]{"NODENAME", "HOSTNAME", "COMPUTERNAME", "POD_NAME"};
 		for (String var : envVarsToTry) {
 			if (isNotBlank(System.getenv(var))) {
 				return System.getenv(var);

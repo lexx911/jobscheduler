@@ -5,12 +5,12 @@ package de.lit.jobscheduler;
 
 import de.lit.jobscheduler.entity.JobDefinition;
 
-public interface JobTrigger {
+import java.time.LocalDateTime;
 
-	boolean isActivated(JobDefinition job);
+public interface JobSchedule {
 
-	void beforeJob(JobDefinition job);
+	boolean testJobReady(JobDefinition job);
 
-	void afterJob(JobDefinition job, Throwable error);
+	LocalDateTime evalNextRun(JobDefinition job);
 
 }

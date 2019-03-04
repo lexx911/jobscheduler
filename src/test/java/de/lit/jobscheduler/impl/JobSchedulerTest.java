@@ -12,16 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
 
 import java.util.function.IntPredicate;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-@ContextConfiguration
+@Configuration
 public class JobSchedulerTest extends SpringDbUnitTestCase {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -31,14 +27,11 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 	@Autowired
 	private JobScheduler jobScheduler;
 
-	@Autowired
-	public JobLifecycleCallback lifecycleMock;
-
 	private static int execCount = 0;
 
 	@Bean
 	public Job testjob1() {
-		return (JobExecution job, JobTrigger jobTrigger) -> {
+		return (JobExecution job, JobSchedule jobSchedule) -> {
 			logger.info(
 					String.format("Job %s is running on %s",
 							job.getJobDefinition().getName(),
@@ -49,73 +42,14 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		};
 	}
 
-	@Bean
-	public Job testjob2() {
-		return (JobExecution job, JobTrigger jobTrigger) -> {
-			logger.info(
-					String.format("Job %s is running on %s throwing error",
-							job.getJobDefinition().getName(),
-							job.getNodeName()
-					));
-			throw new RuntimeException("testerror");
-		};
-	}
-
 	@Before
 	public void setup() {
-		reset(lifecycleMock);
 		execCount = 0;
 	}
 
 	@Test
-	@DatabaseSetup("JobSchedulerTest.test1.xml")
-	public void testSuccess() throws Exception {
-		int upd = jobDao.runJobNow("testjob1");
-		assertEquals("testjob1", 1, upd);
-
-		jobScheduler.run();
-
-		waitForCondition(100, i ->
-				!jobDao.findById("testjob1").get().isRunning()
-		);
-
-		assertEquals("execCount", 1, execCount);
-		JobDefinition job = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
-		assertNotNull("last execution", job.getLastExecution());
-		logger.info("Job execution status: " + job.getLastExecution().getStatus());
-		assertEquals("execution status", JobExecution.Status.SUCCESS, job.getLastExecution().getStatus());
-		verify(lifecycleMock).jobStarted(any());
-		verify(lifecycleMock, never()).jobError(any());
-		verify(lifecycleMock).jobFinished(any());
-	}
-
-	@Test
-	@DatabaseSetup("JobSchedulerTest.test2.xml")
-	public void testError() throws Exception {
-		int upd = jobDao.runJobNow("testjob2");
-		assertEquals("testjob2", 1, upd);
-
-		jobScheduler.run();
-
-		waitForCondition(100, i ->
-				!jobDao.findById("testjob2").get().isRunning()
-		);
-
-		JobDefinition job = jobDao.findById("testjob2").orElseThrow(AssertionError::new);
-		assertNotNull("last execution", job.getLastExecution());
-		logger.info("Job execution status: " + job.getLastExecution().getStatus());
-		assertEquals("execution status", JobExecution.Status.ERROR, job.getLastExecution().getStatus());
-		assertEquals("execution message", "testerror", job.getLastExecution().getMessage());
-		System.out.println(mockingDetails(lifecycleMock).printInvocations());
-		verify(lifecycleMock).jobStarted(any());
-		verify(lifecycleMock).jobError(any());
-		verify(lifecycleMock).jobFinished(any());
-	}
-
-	@Test
-	@DatabaseSetup("JobSchedulerTest.test1.xml")
+	@DatabaseSetup("testjob1.dataset.xml")
 	public void testConcurrent() throws Exception {
-		execCount = 0;
 		int upd = jobDao.runJobNow("testjob1");
 		assertEquals("testjob1", 1, upd);
 

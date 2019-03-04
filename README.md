@@ -21,7 +21,7 @@ configured and managed with a database table.
 | CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday |
 | IMPLEMENTATION  | VARCHAR  | Spring Bean name of Job implentation |
 | NEXT_RUN        | TIMESTAMP| Time for next run, evaluated from cron expression on every run |
-| TRIGGER         | VARCHAR  | Optional: bean name for trigger expression |
+| SCHEDULE        | VARCHAR  | Optional: bean name for schedule. Default: CronSchedule |
 | PARAMS          | VARCHAR  | Optional: Parameters for Job implementation |
 | RUNNING         | BOOLEAN  | Set if Job is running |
 | SUSPENDED       | BOOLEAN  | Set to temp. suspend Job |

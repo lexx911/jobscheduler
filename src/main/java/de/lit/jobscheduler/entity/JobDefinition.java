@@ -31,11 +31,9 @@ public class JobDefinition {
      * "0 0 0 25 12 ?" = every Christmas Day at midnight
      * </pre>
      */
-    @Column(length = 50)
     private String cronExpression;
 
-    @Column(name = "`TRIGGER`")
-    private String trigger;
+    private String schedule;
 
     private String implementation;
 
@@ -77,12 +75,12 @@ public class JobDefinition {
         this.cronExpression = cronExpression;
     }
 
-    public String getTrigger() {
-        return trigger;
+    public String getSchedule() {
+        return schedule;
     }
 
-    public void setTrigger(String trigger) {
-        this.trigger = trigger;
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
     }
 
     public String getImplementation() {

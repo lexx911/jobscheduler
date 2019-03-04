@@ -4,7 +4,7 @@ create table job
 	implementation varchar(255) null,
 	params varchar(4000) null,
 	cron_expression varchar(50) null,
-	`trigger` varchar(255) null,
+	`schedule` varchar(255) null,
 	next_run datetime null,
 	last_execution_id bigint null,
 	running bit not null,

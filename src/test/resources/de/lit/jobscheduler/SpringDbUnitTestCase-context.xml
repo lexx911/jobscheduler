@@ -13,6 +13,7 @@
 
 	<context:property-placeholder location="/application.properties" order="99" />
 	<context:annotation-config/>
+	<context:component-scan base-package="de.lit.jobscheduler"/>
 
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="${application.datasource.driverClassName}" />

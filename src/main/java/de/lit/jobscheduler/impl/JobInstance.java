@@ -4,7 +4,7 @@
 package de.lit.jobscheduler.impl;
 
 import de.lit.jobscheduler.Job;
-import de.lit.jobscheduler.JobTrigger;
+import de.lit.jobscheduler.JobSchedule;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 
@@ -12,10 +12,9 @@ public class JobInstance implements Runnable {
 	private JobDefinition job;
 	private JobExecution jobExecution;
 	private Job implementation;
-	private JobTrigger jobTrigger;
+	private JobSchedule jobSchedule;
 	private Thread thread;
 	private Throwable error;
-	private JobExecutionCallback callback;
 	private long startedTime;
 
 	public JobInstance(JobDefinition job) {
@@ -25,7 +24,7 @@ public class JobInstance implements Runnable {
 	public void run() {
 		try {
 			error = null;
-			implementation.run(jobExecution, jobTrigger);
+			implementation.run(jobExecution, jobSchedule);
 		} catch (Throwable e) {
 			error = e;
 		}
@@ -55,20 +54,12 @@ public class JobInstance implements Runnable {
 		this.implementation = implementation;
 	}
 
-	public JobTrigger getTrigger() {
-		return jobTrigger;
+	public JobSchedule getSchedule() {
+		return jobSchedule;
 	}
 
-	public void setTrigger(JobTrigger jobTrigger) {
-		this.jobTrigger = jobTrigger;
-	}
-
-	public JobExecutionCallback getCallback() {
-		return callback;
-	}
-
-	public void setCallback(JobExecutionCallback callback) {
-		this.callback = callback;
+	public void setSchedule(JobSchedule jobSchedule) {
+		this.jobSchedule = jobSchedule;
 	}
 
 	public Thread getThread() {
@@ -87,12 +78,12 @@ public class JobInstance implements Runnable {
 		this.error = error;
 	}
 
-	public JobTrigger getJobTrigger() {
-		return jobTrigger;
+	public JobSchedule getJobSchedule() {
+		return jobSchedule;
 	}
 
-	public void setJobTrigger(JobTrigger jobTrigger) {
-		this.jobTrigger = jobTrigger;
+	public void setJobSchedule(JobSchedule jobSchedule) {
+		this.jobSchedule = jobSchedule;
 	}
 
 	public long getStartedTime() {

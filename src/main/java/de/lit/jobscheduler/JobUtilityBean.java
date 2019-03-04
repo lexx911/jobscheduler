@@ -3,34 +3,36 @@ package de.lit.jobscheduler;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 import de.lit.jobscheduler.impl.JobInstance;
+import de.lit.jobscheduler.impl.JobScheduler;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 @Component
-public class JobUtilityBean implements ApplicationContextAware {
-	private ApplicationContext applicationContext;
+public class JobUtilityBean {
+
+	private JobScheduler jobScheduler;
 
 	private JobLifecycleCallback lifecycleCallback;
+
+	@Autowired
+	public JobUtilityBean(JobScheduler jobScheduler) {
+		this.jobScheduler = jobScheduler;
+	}
 
 	public JobInstance executeJob(String implementation, String params) throws BeansException {
 		return executeJob(createJobInstance(implementation, params));
 	}
 
 	public JobInstance createJobInstance(String implementation, String params) throws BeansException {
-		Job bean = applicationContext.getBean(implementation, Job.class);
 		JobDefinition job = new JobDefinition();
 		job.setName(implementation.toUpperCase());
 		job.setImplementation(implementation);
 		job.setParams(params);
-		JobInstance instance = new JobInstance(job);
-		instance.setImplementation(bean);
-		return instance;
+		return jobScheduler.createJobInstance(job);
 	}
 
 	public JobInstance executeJob(JobInstance instance) {
@@ -62,11 +64,6 @@ public class JobUtilityBean implements ApplicationContextAware {
 			lifecycleCallback.jobFinished(instance);
 		}
 		return instance;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
 	}
 
 	@Autowired(required = false)

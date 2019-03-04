@@ -6,6 +6,7 @@ package de.lit.jobscheduler.impl;
 import de.lit.jobscheduler.JobLifecycleCallback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
@@ -30,6 +31,8 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 	private static JobExecutorImpl instance = null;
 
 	private JobLifecycleCallback lifecycleCallback;
+
+	private ApplicationContext appContext;
 
 	@Override
 	protected synchronized ExecutorService initializeExecutor(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {

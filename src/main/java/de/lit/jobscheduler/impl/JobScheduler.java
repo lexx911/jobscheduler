@@ -3,13 +3,12 @@
 
 package de.lit.jobscheduler.impl;
 
+import de.lit.jobscheduler.CronSchedule;
 import de.lit.jobscheduler.Job;
-import de.lit.jobscheduler.JobCronCalculator;
-import de.lit.jobscheduler.JobTrigger;
-import de.lit.jobscheduler.JobScheduleTrigger;
+import de.lit.jobscheduler.JobSchedule;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
-import de.lit.jobscheduler.entity.JobExecution;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -18,15 +17,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.RejectedExecutionException;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
 @Component
-public class JobScheduler implements JobExecutionCallback, ApplicationContextAware {
+public class JobScheduler implements ApplicationContextAware {
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final JobDefinitionDao jobDao;
@@ -45,68 +41,43 @@ public class JobScheduler implements JobExecutionCallback, ApplicationContextAwa
 	public void run() {
 		for (JobDefinition job : jobDao.findAllDue()) {
 			if (jobExecutor.remainingCapacity() == 0) {
+				logger.warn("jobExecutor has no capacity left. Job {} cannot run", job.getName());
 				break;
 			}
 			try {
-				JobTrigger jobTrigger = isNotEmpty(job.getTrigger())
-						? appContext.getBean(job.getTrigger(), JobTrigger.class)
-						: null;
-				if (testJobDue(job, jobTrigger)) {
-					JobScheduler scheduler = appContext.getBean(JobScheduler.class);
-					scheduler.submitJob(job, jobTrigger);
-				} else if (!job.isRunning() && !job.isSuspended() && !job.isDisabled()) {
-					updateNextRun(job);
+				JobInstance instance = createJobInstance(job);
+				JobSchedule schedule = instance.getJobSchedule();
+				if (schedule.testJobReady(job)) {
+					jobExecutor.submitJob(instance);
+				} else {
+					LocalDateTime nextRun = schedule.evalNextRun(job);
+					jobDao.updateForNextRun(job.getName(), nextRun);
 				}
-
 			} catch (RejectedExecutionException e) {
-				logger.debug("executor is full. wait for next schedule cycle.");
+				logger.warn("jobExecutor is full. wait for next schedule cycle for Job {}", job.getName());
 				break;
 			} catch (Exception e) {
 				logger.error("Cannot submit job " + job.getName(), e);
-				jobFinished(job);
 			}
 		}
 	}
 
-	@Transactional
-	public void submitJob(JobDefinition job, JobTrigger jobTrigger) throws RejectedExecutionException {
-		job = jobDao.lockJob(job.getName());
-		if (!testJobDue(job, jobTrigger)) {
-			logger.debug("Job {} not executed by this thread", job.getName());
-			return;
-		}
-		jobExecutor.execute(job, jobTrigger, this);
-		jobDao.updateRunning(job.getName(), true);
-	}
-
-	private boolean testJobDue(JobDefinition job, JobTrigger jobTrigger) {
-		return !job.isRunning() && !job.isSuspended() && !job.isDisabled() &&
-				(jobTrigger == null || jobTrigger.isActivated(job));
-	}
-
-	@Override
-	public void jobStarted(JobDefinition job, JobExecution jobExecution) {
-		jobDao.updateStartExecution(job.getName(), jobExecution);
-	}
-
-	@Override
-	public void jobFinished(JobDefinition job) {
-		updateNextRun(job);
-	}
-
-	private void updateNextRun(JobDefinition job) {
-		LocalDateTime nextRun;
-		try {
-			JobTrigger trigger = appContext.getBean(job.getTrigger(), JobTrigger.class);
-			if (trigger instanceof JobScheduleTrigger) {
-				nextRun = ((JobScheduleTrigger) trigger).evalNextRun(job);
-			} else {
-				nextRun = JobCronCalculator.eval(job.getCronExpression());
-			}
-		} catch (Throwable t) {
-			nextRun = JobCronCalculator.eval(job.getCronExpression());
-		}
-		jobDao.updateForNextRun(job.getName(), nextRun);
+	/**
+	 * Create {@link JobInstance} from job definition. Retrieves implementation and schedule bean
+	 * from application context. If job schedule is empty then the default {@link CronSchedule} is used.
+	 *
+	 * @param job Definition from Job Table
+	 * @return JobInstance
+	 * @throws BeansException if implementation or schedule bean cannot be found
+	 */
+	public JobInstance createJobInstance(JobDefinition job) throws BeansException {
+		JobInstance instance = new JobInstance(job);
+		JobSchedule schedule = StringUtils.isNotEmpty(job.getSchedule())
+				? appContext.getBean(job.getSchedule(), JobSchedule.class)
+				: appContext.getBean(CronSchedule.class);
+		instance.setImplementation(appContext.getBean(job.getImplementation(), Job.class));
+		instance.setSchedule(schedule);
+		return instance;
 	}
 
 	@Override

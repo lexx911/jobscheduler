@@ -15,14 +15,14 @@ import static de.lit.jobscheduler.entity.JobExecution.Status.RUNNING;
 public class ConsistencyCheck {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private JobExecutionDao jobExecutionDao;
-	private JobScheduler jobScheduler;
-	private JobExecutor jobExecutor;
+	private final JobExecutionDao jobExecutionDao;
+	private final JobExecutor jobExecutor;
+	private final JobScheduler jobScheduler;
 
-	public ConsistencyCheck(JobScheduler jobScheduler, JobExecutor jobExecutor, JobExecutionDao jobExecutionDao) {
+	public ConsistencyCheck(JobExecutor jobExecutor, JobExecutionDao jobExecutionDao, JobScheduler jobScheduler) {
 		this.jobExecutionDao = jobExecutionDao;
-		this.jobScheduler = jobScheduler;
 		this.jobExecutor = jobExecutor;
+		this.jobScheduler = jobScheduler;
 	}
 
 	/**
@@ -48,7 +48,8 @@ public class ConsistencyCheck {
 						.getJobDefinition();
 				if (job.isRunning()) {
 					logger.warn("Found orphaned job {} execution={}", job.getName(), exec.getId());
-					jobScheduler.jobFinished(job);
+					inst = jobScheduler.createJobInstance(job);
+					jobExecutor.prepareForNextRun(inst);
 				}
 			}
 		}

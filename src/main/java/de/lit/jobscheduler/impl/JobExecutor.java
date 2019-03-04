@@ -6,7 +6,6 @@ package de.lit.jobscheduler.impl;
 import java.util.Collection;
 import java.util.concurrent.RejectedExecutionException;
 
-import de.lit.jobscheduler.JobTrigger;
 import de.lit.jobscheduler.entity.JobDefinition;
 
 public interface JobExecutor {
@@ -17,16 +16,11 @@ public interface JobExecutor {
 	 * within the actual worker thread. A JobExecution is created just before
 	 * and updated just after the callbacks.
 	 * 
-	 * @param job
-	 *            JobDefinition with implementation to run
-	 * @param jobTrigger
-	 *            optional JobTrigger providing additional data
-	 * @param callback
-	 *            optional {@code jobStarted} and {@code jobFinished} callbacks
+	 * @param instance Job to run
 	 * @throws RejectedExecutionException
 	 *             thrown if all workers are occupied and queue is full
 	 */
-	void execute(JobDefinition job, JobTrigger jobTrigger, JobExecutionCallback callback) throws RejectedExecutionException;
+	void submitJob(JobInstance instance) throws RejectedExecutionException;
 
 	/**
 	 * Provides a list with all currently running job instances.
@@ -34,6 +28,12 @@ public interface JobExecutor {
 	 * @return Collection of JobInstance
 	 */
 	Collection<JobInstance> listRunningJobs();
+
+	/**
+	 * Prepare job for next run: evaluate next run time and set running = 0
+	 * @param jobInstance JobInstance
+	 */
+	void prepareForNextRun(JobInstance jobInstance);
 
 	/**
 	 * Return Job Instance from running instances by jobExecutionId. Only for
