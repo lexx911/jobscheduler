@@ -1,7 +1,9 @@
 package de.lit.jobscheduler.impl;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
-import de.lit.jobscheduler.*;
+import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.JobSchedule;
+import de.lit.jobscheduler.SpringDbUnitTestCase;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
@@ -11,13 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDateTime;
 import java.util.function.IntPredicate;
 
 import static org.junit.Assert.*;
 
-@Configuration
+@ContextConfiguration
 public class JobSchedulerTest extends SpringDbUnitTestCase {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,6 +42,22 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 					));
 			Thread.sleep(250);
 			execCount++;
+		};
+	}
+
+	private static LocalDateTime dummyNextRun = LocalDateTime.of(2099,4,1,11,11);
+	@Bean
+	public JobSchedule dummySchedule() {
+		return new JobSchedule() {
+			@Override
+			public boolean testJobReady(JobDefinition job) {
+				return false;
+			}
+
+			@Override
+			public LocalDateTime evalNextRun(JobDefinition job) {
+				return dummyNextRun;
+			}
 		};
 	}
 
@@ -73,6 +92,23 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		assertNotNull("last execution", job.getLastExecution());
 		logger.info("Job execution status: " + job.getLastExecution().getStatus());
 		assertEquals("execution status", JobExecution.Status.SUCCESS, job.getLastExecution().getStatus());
+	}
+
+	@Test
+	@DatabaseSetup("testjob1.dataset.xml")
+	public void testSchedule() throws Exception {
+		JobDefinition testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		testjob1.setSchedule("dummySchedule");
+		jobDao.save(testjob1);
+		jobDao.runJobNow(testjob1.getName());
+
+		jobScheduler.run();
+
+		Thread.sleep(500);
+		assertEquals("execCount", 0, execCount);
+		testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		assertNotNull("testjob1", testjob1);
+		assertEquals("nextRun", dummyNextRun, testjob1.getNextRun());
 	}
 
 	private void waitForCondition(int seconds, IntPredicate condition) throws InterruptedException {

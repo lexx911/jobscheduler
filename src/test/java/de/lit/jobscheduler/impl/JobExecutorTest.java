@@ -7,19 +7,19 @@ import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDateTime;
 import java.util.function.IntPredicate;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@Configuration
+@ContextConfiguration
 public class JobExecutorTest extends SpringDbUnitTestCase {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,9 +62,20 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 		};
 	}
 
+	private static LocalDateTime dummyNextRun = LocalDateTime.of(2088,4,1,11,11);
 	@Bean
-	public JobLifecycleCallback lifecycleCallback() {
-		return Mockito.mock(JobLifecycleCallback.class);
+	public JobSchedule dummySchedule() {
+		return new JobSchedule() {
+			@Override
+			public boolean testJobReady(JobDefinition job) {
+				return false;
+			}
+
+			@Override
+			public LocalDateTime evalNextRun(JobDefinition job) {
+				return dummyNextRun;
+			}
+		};
 	}
 
 	@Before
@@ -81,7 +92,7 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 		jobExecutor.submitJob(jobInstance);
 
 		waitForCondition(100, i ->
-				!jobDao.findById("testjob1").get().isRunning()
+				jobIsNotRunning("testjob1")
 		);
 
 		assertEquals("execCount", 1, execCount);
@@ -102,7 +113,7 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 		jobExecutor.submitJob(jobInstance);
 
 		waitForCondition(100, i ->
-				!jobDao.findById("testjob2").get().isRunning()
+				jobIsNotRunning("testjob2")
 		);
 
 		JobDefinition job = jobDao.findById("testjob2").orElseThrow(AssertionError::new);
@@ -114,6 +125,27 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 		verify(lifecycleMock).jobStarted(any());
 		verify(lifecycleMock).jobError(any());
 		verify(lifecycleMock).jobFinished(any());
+	}
+
+	@Test
+	@DatabaseSetup("testjob1.dataset.xml")
+	public void testSchedule() throws Exception {
+		JobInstance jobInstance = jobUtility.createJobInstance("testjob1", null);
+		jobInstance.setSchedule(dummySchedule());
+
+		jobExecutor.submitJob(jobInstance);
+
+		waitForCondition(100, i ->
+				jobIsNotRunning("testjob1")
+		);
+
+		assertEquals("execCount", 1, execCount);
+		JobDefinition job = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		assertEquals("nextRun", dummyNextRun, job.getNextRun());
+	}
+
+	private boolean jobIsNotRunning(String testjob1) {
+		return !jobDao.findById(testjob1).orElseThrow(AssertionError::new).isRunning();
 	}
 
 	private void waitForCondition(int seconds, IntPredicate condition) throws InterruptedException {

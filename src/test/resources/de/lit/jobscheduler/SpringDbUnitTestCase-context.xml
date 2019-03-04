@@ -13,7 +13,6 @@
 
 	<context:property-placeholder location="/application.properties" order="99" />
 	<context:annotation-config/>
-	<context:component-scan base-package="de.lit.jobscheduler"/>
 
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="${application.datasource.driverClassName}" />
@@ -64,8 +63,6 @@
 		</property>
 	</bean>
 	<tx:annotation-driven proxy-target-class="true"/>
-
-	<jpa:repositories base-package="de.lit.jobscheduler.dao" />
 
 	<beans profile="oracledb">
 		<context:property-placeholder location="/application-oracledb.properties" order="1"/>

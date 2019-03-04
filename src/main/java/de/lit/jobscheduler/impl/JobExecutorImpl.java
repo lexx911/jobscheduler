@@ -56,7 +56,7 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 	@Transactional
 	public void submitJob(JobInstance instance) throws RejectedExecutionException {
 		JobDefinition job = jobDao.lockJob(instance.getJob().getName());
-		if (job.isRunning() || job.getNextRun().isAfter(LocalDateTime.now())) {
+		if (job.isRunning() || (job.getNextRun() != null && job.getNextRun().isAfter(LocalDateTime.now()))) {
 			logger.debug("Job {} not executed by this thread", job.getName());
 			return;
 		}

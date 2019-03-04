@@ -2,10 +2,11 @@ package de.lit.jobscheduler;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import org.junit.runner.RunWith;
+import org.mockito.internal.junit.MockitoTestListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
@@ -16,10 +17,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ContextConfiguration
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class,
-		DirtiesContextTestExecutionListener.class,
 		TransactionalTestExecutionListener.class,
 		DbUnitTestExecutionListener.class})
 public abstract class SpringDbUnitTestCase {

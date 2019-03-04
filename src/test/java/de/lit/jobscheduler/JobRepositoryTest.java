@@ -2,6 +2,7 @@ package de.lit.jobscheduler;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.lit.jobscheduler.dao.JobDefinitionDao;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.Assert.*;
 
+@ContextConfiguration
 public class JobRepositoryTest extends SpringDbUnitTestCase {
 
 	@Autowired
