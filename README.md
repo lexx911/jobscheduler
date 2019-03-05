@@ -18,7 +18,7 @@ configured and managed with a database table.
 | Field           | Type     | Description |
 | --------------- | -------- | ----------- |
 | NAME            | VARCHAR  | Unique Name of Job (Primary Key) |
-| CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday. See [Quartz CronExpression](http://www.quartz-scheduler.org/api/2.3.0/index.html) |
+| CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday. See [Quartz CronExpression](http://www.quartz-scheduler.org/api/2.3.0/org/quartz/CronExpression.html) |
 | IMPLEMENTATION  | VARCHAR  | Spring Bean name of Job implentation |
 | NEXT_RUN        | TIMESTAMP| Time for next run, evaluated from cron expression or schedule on every run |
 | SCHEDULE        | VARCHAR  | Optional: bean name for schedule. Default: CronSchedule |
