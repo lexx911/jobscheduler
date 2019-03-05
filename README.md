@@ -18,16 +18,16 @@ configured and managed with a database table.
 | Field           | Type     | Description |
 | --------------- | -------- | ----------- |
 | NAME            | VARCHAR  | Unique Name of Job (Primary Key) |
-| CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday |
+| CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday. See [Quartz CronExpression](http://www.quartz-scheduler.org/api/2.3.0/index.html) |
 | IMPLEMENTATION  | VARCHAR  | Spring Bean name of Job implentation |
-| NEXT_RUN        | TIMESTAMP| Time for next run, evaluated from cron expression on every run |
+| NEXT_RUN        | TIMESTAMP| Time for next run, evaluated from cron expression or schedule on every run |
 | SCHEDULE        | VARCHAR  | Optional: bean name for schedule. Default: CronSchedule |
 | PARAMS          | VARCHAR  | Optional: Parameters for Job implementation |
 | RUNNING         | BOOLEAN  | Set if Job is running |
 | SUSPENDED       | BOOLEAN  | Set to temp. suspend Job |
 | DISABLED        | BOOLEAN  | Set to permanently disable Job |
-| LAST_EXECUTION_ID|NUMBER   | Refernce to last execution |
-| ERROR_MAIL_ADDRESS|VARCHAR | Optional, not used by Jobscheduler |
+| LAST_EXECUTION_ID| NUMBER  | Reference to last execution |
+| ERROR_MAIL_ADDRESS|VARCHAR | Optional, not used by Jobscheduler. May be used by JobLifecycleCallback |
 
 Every Job execution is logged in `JOB_EXECUTION` Table
 
@@ -39,7 +39,7 @@ Include maven dependency in your pom.xml:
        <dependency>
            <groupId>de.laetsch-it.jobscheduler</groupId>
            <artifactId>jobscheduler</artifactId>
-           <version>1.0.2</version>
+           <version>1.1.0</version>
        </dependency>
    ```
 #### Spring Boot applications

@@ -1,14 +1,15 @@
 package de.lit.jobscheduler;
 
 import de.lit.jobscheduler.entity.JobDefinition;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.quartz.CronExpression;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Component
 public class CronSchedule implements JobSchedule {
@@ -20,14 +21,18 @@ public class CronSchedule implements JobSchedule {
 
 	@Override
 	public LocalDateTime evalNextRun(JobDefinition job) {
-		if (isNotEmpty(job.getCronExpression())) {
-			CronSequenceGenerator cron = new CronSequenceGenerator(job.getCronExpression());
-			Date nextDate = cron.next(new Date());
+		if (isEmpty(job.getCronExpression())) {
+			return null;
+		}
+		try {
+			CronExpression cron = new CronExpression(job.getCronExpression());
+			Date nextDate = cron.getNextValidTimeAfter(new Date());
 			return nextDate.toInstant()
 					.atZone(ZoneId.systemDefault())
 					.toLocalDateTime();
+		} catch (ParseException e) {
+			throw new IllegalArgumentException(job.getCronExpression(), e);
 		}
-		return null;
 	}
 
 
