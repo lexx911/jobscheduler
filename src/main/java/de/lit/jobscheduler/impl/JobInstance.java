@@ -24,7 +24,7 @@ public class JobInstance implements Runnable {
 	public void run() {
 		try {
 			error = null;
-			implementation.run(jobExecution, jobSchedule);
+			implementation.run(jobExecution);
 		} catch (Throwable e) {
 			error = e;
 		}

@@ -34,7 +34,7 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 
 	@Bean
 	public Job testjob1() {
-		return (JobExecution job, JobSchedule jobSchedule) -> {
+		return job -> {
 			logger.info(
 					String.format("Job %s is running on %s",
 							job.getJobDefinition().getName(),
@@ -79,7 +79,7 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		t2.start();
 
 		waitForCondition(10, i ->
-				execCount > 0 && !jobDao.findById("testjob1").get().isRunning()
+				execCount > 0 && !jobDao.findById("testjob1").orElseThrow(AssertionError::new).isRunning()
 		);
 
 		t1.join(1000);

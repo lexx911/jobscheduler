@@ -39,7 +39,7 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 
 	@Bean
 	public Job testjob1() {
-		return (JobExecution job, JobSchedule jobSchedule) -> {
+		return job -> {
 			logger.info(
 					String.format("Job %s is running on %s",
 							job.getJobDefinition().getName(),
@@ -52,7 +52,7 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 
 	@Bean
 	public Job testjob2() {
-		return (JobExecution job, JobSchedule jobSchedule) -> {
+		return job -> {
 			logger.info(
 					String.format("Job %s is running on %s throwing error",
 							job.getJobDefinition().getName(),

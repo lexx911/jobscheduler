@@ -6,5 +6,5 @@ package de.lit.jobscheduler;
 import de.lit.jobscheduler.entity.JobExecution;
 
 public interface Job {
-	void run(JobExecution job, JobSchedule jobSchedule) throws Exception;
+	void run(JobExecution job) throws Exception;
 }
