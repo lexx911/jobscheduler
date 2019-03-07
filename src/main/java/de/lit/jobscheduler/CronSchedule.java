@@ -11,7 +11,7 @@ import java.util.Date;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-@Component
+@Component("cronSchedule")
 public class CronSchedule implements JobSchedule {
 
 	@Override

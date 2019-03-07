@@ -9,8 +9,8 @@
 
 	<bean class="de.lit.jobscheduler.impl.JobScheduler" />
 	<bean class="de.lit.jobscheduler.impl.JobExecutorFactoryBean"/>
-	<bean class="de.lit.jobscheduler.JobUtilityBean"/>
-	<bean class="de.lit.jobscheduler.CronSchedule"/>
+	<bean id="jobUtilityBean" class="de.lit.jobscheduler.JobUtilityBean"/>
+	<bean id="cronSchedule" class="de.lit.jobscheduler.CronSchedule"/>
 
 	<bean class="de.lit.jobscheduler.impl.JobSchedulerTest"/>
 </beans>

@@ -18,6 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.transaction.Transactional;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -133,14 +134,26 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 					}
 				}
 				jobExec = jobExecutionDao.save(jobExec);
-				if (lifecycleCallback != null) lifecycleCallback.jobFinished(jobInst);
 			} catch (Throwable e) {
 				logger.error(jobInst.getJob().getName(), e);
 				jobExec = jobExecutionDao.save(jobExec);
+				jobDao.updateRunning(job.getName(), false);
 			} finally {
 				runningJobs.remove(jobExec.getId());
 			}
-			prepareForNextRun(jobInst);
+
+			try {
+				if (lifecycleCallback != null) lifecycleCallback.jobFinished(jobInst);
+			} catch (Exception e) {
+				logger.error("lifecycleCallback.jobFinished for Job " + job.getName(), e);
+			}
+
+			try {
+				prepareForNextRun(jobInst);
+			} catch (Exception e) {
+				logger.error("Error calculating next run time for Job " + job.getName(), e);
+				jobDao.updateForNextRun(job.getName(), null);
+			}
 		}
 	}
 

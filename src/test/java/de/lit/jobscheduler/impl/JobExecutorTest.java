@@ -145,6 +145,23 @@ public class JobExecutorTest extends SpringDbUnitTestCase {
 		assertEquals("nextRun", dummyNextRun, job.getNextRun());
 	}
 
+	@Test
+	@DatabaseSetup("testjob1.dataset.xml")
+	public void testInvalidCron() throws Exception {
+		JobInstance jobInstance = jobUtility.createJobInstance("testjob1", null);
+		jobInstance.getJob().setCronExpression("0 0 INVALID");
+
+		jobExecutor.submitJob(jobInstance);
+
+		waitForCondition(100, i ->
+				jobIsNotRunning("testjob1")
+		);
+
+		assertEquals("execCount", 1, execCount);
+		JobDefinition job = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		assertNull("nextRun", job.getNextRun());
+	}
+
 	private boolean jobIsNotRunning(String testjob1) {
 		return !jobDao.findById(testjob1).orElseThrow(AssertionError::new).isRunning();
 	}

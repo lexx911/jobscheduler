@@ -11,8 +11,8 @@
 	<bean class="de.lit.jobscheduler.impl.JobExecutorFactoryBean">
 		<property name="lifecycleCallback" ref="lifecycleCallback" />
 	</bean>
-	<bean class="de.lit.jobscheduler.JobUtilityBean"/>
-	<bean class="de.lit.jobscheduler.CronSchedule"/>
+	<bean id="jobUtilityBean" class="de.lit.jobscheduler.JobUtilityBean"/>
+	<bean id="cronSchedule" class="de.lit.jobscheduler.CronSchedule"/>
 
 	<bean id="lifecycleCallback" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="de.lit.jobscheduler.JobLifecycleCallback"/>

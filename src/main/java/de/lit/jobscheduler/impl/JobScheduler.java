@@ -8,7 +8,6 @@ import de.lit.jobscheduler.Job;
 import de.lit.jobscheduler.JobSchedule;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -20,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.RejectedExecutionException;
+
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Component
 public class JobScheduler implements ApplicationContextAware {
@@ -72,9 +73,8 @@ public class JobScheduler implements ApplicationContextAware {
 	 */
 	public JobInstance createJobInstance(JobDefinition job) throws BeansException {
 		JobInstance instance = new JobInstance(job);
-		JobSchedule schedule = StringUtils.isNotEmpty(job.getSchedule())
-				? appContext.getBean(job.getSchedule(), JobSchedule.class)
-				: appContext.getBean(CronSchedule.class);
+		String scheduleBean = isNotEmpty(job.getSchedule()) ? job.getSchedule() : "cronSchedule";
+		JobSchedule schedule = appContext.getBean(scheduleBean, JobSchedule.class);
 		instance.setImplementation(appContext.getBean(job.getImplementation(), Job.class));
 		instance.setSchedule(schedule);
 		return instance;

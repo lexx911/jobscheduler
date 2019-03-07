@@ -111,6 +111,24 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		assertEquals("nextRun", dummyNextRun, testjob1.getNextRun());
 	}
 
+	@Test
+	@DatabaseSetup("testjob1.dataset.xml")
+	public void testEmptyNextRun() throws Exception {
+		JobDefinition testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		testjob1.setNextRun(null);
+		testjob1.setLastExecution(null);
+		jobDao.save(testjob1);
+
+		jobScheduler.run();
+
+		Thread.sleep(500);
+		assertEquals("execCount", 0, execCount);
+		testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		assertNotNull("testjob1", testjob1);
+		assertNull("nextRun", testjob1.getNextRun());
+		assertNull("lastExecution", testjob1.getLastExecution());
+	}
+
 	private void waitForCondition(int seconds, IntPredicate condition) throws InterruptedException {
 		int timeout = seconds * 10;
 		do {
