@@ -16,9 +16,9 @@ public interface JPAJobDefinitionDao extends CrudRepository<JobDefinition, Strin
 
 	@Query("FROM JobDefinition "
 			+ " WHERE running=0 and disabled=0 and suspended=0 "
-			+ "  and (nextRun <= current_timestamp or nextRun is null) "
+			+ "  and nextRun <= ?1 "
 			+ " ORDER BY nextRun")
-	List<JobDefinition> findAllDue();
+	List<JobDefinition> findAllDue(LocalDateTime when);
 
 	@Query("FROM JobDefinition WHERE name=?1")
 	@Lock(LockModeType.PESSIMISTIC_WRITE)

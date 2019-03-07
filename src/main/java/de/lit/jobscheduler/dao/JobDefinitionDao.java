@@ -27,12 +27,21 @@ public interface JobDefinitionDao {
 	 * <pre>
 	 * SELECT * FROM JobDefinition
 	 * WHERE running=0 and disabled=0 and suspended=0
-	 *  and (nextRun <= current_timestamp or nextRun is null)
+	 *  and nextRun <= ?1
 	 * ORDER BY nextRun
 	 * </pre>
 	 * @return All due jobs
 	 */
-	List<JobDefinition> findAllDue();
+	List<JobDefinition> findAllDue(LocalDateTime when);
+
+	/**
+	 * All job due now, equals <code>findAllDue(LocalDateTime.now())</code>
+	 * @return All jobs with nextRun before now
+	 */
+	default List<JobDefinition> findAllDue() {
+		return findAllDue(LocalDateTime.now());
+
+	}
 
 	/**
 	 * {@code SELECT * FROM JobDefinition WHERE name=?1 FOR UPDATE}
