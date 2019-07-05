@@ -1,6 +1,11 @@
 {
   "properties": [
     {
+      "name": "application.jobscheduler.enable",
+      "type": "java.lang.Boolean",
+      "description": "Disable jobscheduler completely with this set to false. Useful for tests. Default: true"
+    },
+    {
       "name": "application.jobscheduler.initialDelay",
       "type": "java.lang.Long",
       "description": "Initial delay in milliseconds until jobscheduler starts scanning job table and executing jobs. Default: 10000"
