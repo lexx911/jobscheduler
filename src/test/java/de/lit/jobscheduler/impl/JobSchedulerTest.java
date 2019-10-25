@@ -2,6 +2,7 @@ package de.lit.jobscheduler.impl;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.JobImplementationProvider;
 import de.lit.jobscheduler.JobSchedule;
 import de.lit.jobscheduler.SpringDbUnitTestCase;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
@@ -109,6 +110,31 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
 		assertNotNull("testjob1", testjob1);
 		assertEquals("nextRun", dummyNextRun, testjob1.getNextRun());
+	}
+
+	@Test
+	@DatabaseSetup("testjob1.dataset.xml")
+	public void testImplProvider() throws Exception {
+		JobImplementationProvider old = jobScheduler.getJobImplementationProvider();
+		try {
+			JobDefinition testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+			testjob1.setImplementation("test:customProvider");
+			jobDao.save(testjob1);
+			jobDao.runJobNow(testjob1.getName());
+			jobScheduler.setJobImplementationProvider(jobDefinition -> job -> {
+				logger.info("Running custom Job implementation");
+				Thread.sleep(250);
+				execCount += 100;
+			});
+
+			jobScheduler.run();
+
+			Thread.sleep(500);
+			assertEquals("execCount", 100, execCount);
+		}
+		finally {
+			jobScheduler.setJobImplementationProvider(old);
+		}
 	}
 
 	@Test

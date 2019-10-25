@@ -5,6 +5,7 @@ package de.lit.jobscheduler.impl;
 
 import de.lit.jobscheduler.CronSchedule;
 import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.JobImplementationProvider;
 import de.lit.jobscheduler.JobSchedule;
 import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
@@ -31,6 +32,12 @@ public class JobScheduler implements ApplicationContextAware {
 	private final JobExecutor jobExecutor;
 
 	private ApplicationContext appContext;
+
+	/**
+	 * Optional provider for Job implementation beans/instances.
+	 * Default behaviour is {@code appContext.getBean(job.getImplementation(), Job.class)}
+	 */
+	private JobImplementationProvider jobImplementationProvider;
 
 	@Autowired
 	public JobScheduler(JobDefinitionDao jobDao, JobExecutor jobExecutor) {
@@ -75,7 +82,11 @@ public class JobScheduler implements ApplicationContextAware {
 		JobInstance instance = new JobInstance(job);
 		String scheduleBean = isNotEmpty(job.getSchedule()) ? job.getSchedule() : "cronSchedule";
 		JobSchedule schedule = appContext.getBean(scheduleBean, JobSchedule.class);
-		instance.setImplementation(appContext.getBean(job.getImplementation(), Job.class));
+		if (jobImplementationProvider != null) {
+			instance.setImplementation(jobImplementationProvider.getImplementation(job));
+		} else {
+			instance.setImplementation(appContext.getBean(job.getImplementation(), Job.class));
+		}
 		instance.setSchedule(schedule);
 		return instance;
 	}
@@ -83,5 +94,14 @@ public class JobScheduler implements ApplicationContextAware {
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.appContext = applicationContext;
+	}
+
+	public JobImplementationProvider getJobImplementationProvider() {
+		return jobImplementationProvider;
+	}
+
+	@Autowired(required = false)
+	public void setJobImplementationProvider(JobImplementationProvider jobImplementationProvider) {
+		this.jobImplementationProvider = jobImplementationProvider;
 	}
 }
