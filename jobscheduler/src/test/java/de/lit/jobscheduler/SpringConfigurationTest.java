@@ -16,7 +16,7 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringRunner.class)
 @EnableJobScheduler
 public class SpringConfigurationTest {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(SpringConfigurationTest.class);
 
 	static {
 		SpringDbUnitTestCase.initSystemProperties();

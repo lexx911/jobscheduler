@@ -28,7 +28,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, DisposableBean {
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(JobExecutorImpl.class);
 
 	private String nodeName;
 

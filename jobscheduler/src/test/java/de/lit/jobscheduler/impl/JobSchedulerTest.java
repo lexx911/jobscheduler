@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
 
 @ContextConfiguration
 public class JobSchedulerTest extends SpringDbUnitTestCase {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(JobSchedulerTest.class);
 
 	@Autowired
 	private JobDefinitionDao jobDao;

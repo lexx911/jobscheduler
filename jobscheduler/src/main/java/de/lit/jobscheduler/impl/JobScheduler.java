@@ -25,7 +25,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Component
 public class JobScheduler implements ApplicationContextAware {
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
+	protected final Logger logger = LoggerFactory.getLogger(JobScheduler.class);
 
 	private final JobDefinitionDao jobDao;
 

@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 
 @ContextConfiguration
 public class JobExecutorTest extends SpringDbUnitTestCase {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+	private final Logger logger = LoggerFactory.getLogger(JobExecutorTest.class);
 
 	@Autowired
 	private JobDefinitionDao jobDao;

@@ -13,7 +13,7 @@ import static de.lit.jobscheduler.entity.JobExecution.Status.RUNNING;
 
 @Component
 public class ConsistencyCheck {
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private Logger logger = LoggerFactory.getLogger(ConsistencyCheck.class);
 
 	private final JobExecutionDao jobExecutionDao;
 	private final JobExecutor jobExecutor;
