@@ -5,7 +5,7 @@
     <parent>
         <groupId>de.laetsch-it.jobscheduler</groupId>
         <artifactId>jobscheduler-parent</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
+        <version>1.1.6</version>
     </parent>
 
     <artifactId>jobscheduler</artifactId>
