@@ -7,6 +7,7 @@ import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -14,6 +15,7 @@ import org.springframework.util.Assert;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,7 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 	@Autowired
 	public JdbcJobDefinitionDao(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
+		this.jobExecutionDao = new JdbcJobExecutionDao(jdbcTemplate);
 	}
 
 	@Override
@@ -165,7 +168,8 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 	@Transactional(propagation = Propagation.MANDATORY)
 	public JobDefinition lockJob(String name) {
 		String sql = "SELECT JOB.* FROM " + tablename + " JOB WHERE JOB.NAME = ? FOR UPDATE";
-		return jdbcTemplate.queryForObject(sql, new Object[]{name}, this::rowMapper);
+		return jdbcTemplate.queryForObject(sql, new Object[]{name},
+				(rs, rowNum) -> mapJobDefinition(rs, ""));
 	}
 
 	@Transactional
@@ -190,7 +194,8 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 		Assert.notNull(jobExecution.getId(), "JobExecution must be saved first (ID is missing)");
 		return jdbcTemplate.update(
 				"UPDATE " + tablename + " SET RUNNING=1, LAST_EXECUTION_ID=? where NAME=?",
-				jobExecution.getId(), name
+				new SqlParameterValue(Types.BIGINT, jobExecution.getId()),
+				name
 		);
 	}
 
@@ -198,7 +203,8 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 	public int updateForNextRun(String name, LocalDateTime nextRun) {
 		return jdbcTemplate.update(
 				"UPDATE " + tablename + " SET RUNNING=0, NEXT_RUN=? where NAME=?",
-				nextRun, name
+				new SqlParameterValue(Types.TIMESTAMP, nextRun),
+				name
 		);
 	}
 
@@ -223,14 +229,5 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 	 */
 	public void setTablename(String tablename) {
 		this.tablename = tablename;
-	}
-
-	public JdbcJobExecutionDao getJobExecutionDao() {
-		return jobExecutionDao;
-	}
-
-	@Autowired
-	public void setJobExecutionDao(JdbcJobExecutionDao jobExecutionDao) {
-		this.jobExecutionDao = jobExecutionDao;
 	}
 }
