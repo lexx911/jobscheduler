@@ -42,6 +42,16 @@
             <groupId>de.laetsch-it.jobscheduler</groupId>
             <artifactId>jobscheduler</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-data-jpa</artifactId>
+                    <groupId>org.springframework.data</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
         </dependency>
         <dependency>
             <groupId>ca.krasnay</groupId>
