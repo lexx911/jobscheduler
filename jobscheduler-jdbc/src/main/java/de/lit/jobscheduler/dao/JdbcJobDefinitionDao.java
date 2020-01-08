@@ -1,7 +1,6 @@
 package de.lit.jobscheduler.dao;
 
 import ca.krasnay.sqlbuilder.InsertBuilder;
-import ca.krasnay.sqlbuilder.SelectBuilder;
 import ca.krasnay.sqlbuilder.UpdateBuilder;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
@@ -26,12 +25,10 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 
 	private JdbcTemplate jdbcTemplate;
 	private String tablename = "JOB";
-	private JdbcJobExecutionDao jobExecutionDao;
 
 	@Autowired
 	public JdbcJobDefinitionDao(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
-		this.jobExecutionDao = new JdbcJobExecutionDao(jdbcTemplate);
 	}
 
 	@Override
@@ -107,7 +104,8 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 	private JobDefinition rowMapper(ResultSet rs, int rowNum) throws SQLException {
 		JobDefinition entity = mapJobDefinition(rs, "");
 		if (rs.getObject("LAST_EXECUTION_ID") != null) {
-			JobExecution lastExecution = jobExecutionDao.mapJobExecution(rs, LAST_EXEC_COLUMN_PREFIX);
+			JobExecution lastExecution = new JobExecution();
+			lastExecution.setId(rs.getLong("LAST_EXECUTION_ID"));
 			entity.setLastExecution(lastExecution);
 			lastExecution.setJobDefinition(entity);
 		}
@@ -129,19 +127,6 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 		return entity;
 	}
 
-	private SelectBuilder buildJoinSelect() {
-		SelectBuilder sqlBuilder = new SelectBuilder()
-				.column("JOB.*")
-				.from(tablename + " JOB")
-				.leftJoin(jobExecutionDao.getTablename() + " EXECUTION ON (JOB.LAST_EXECUTION_ID = EXECUTION.ID) ");
-
-		for (String col : jobExecutionDao.getColumnNames()) {
-			sqlBuilder.column("EXECUTION." + col + " " + LAST_EXEC_COLUMN_PREFIX + col);
-		}
-
-		return sqlBuilder;
-	}
-
 	public String[] getColumnNames() {
 		return new String[]{
 				"NAME", "CRON_EXPRESSION", "IMPLEMENTATION", "SCHEDULE", "NEXT_RUN", "PARAMS",
@@ -151,14 +136,14 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 
 	@Override
 	public Optional<JobDefinition> findById(String name) {
-		String sql = buildJoinSelect() + " WHERE JOB.NAME = ? ";
+		String sql = "SELECT * FROM " + tablename + " WHERE JOB.NAME = ? ";
 		return Optional.ofNullable(
 				jdbcTemplate.queryForObject(sql, new Object[]{name}, this::rowMapper)
 		);
 	}
 
 	public List<JobDefinition> findAllDue(LocalDateTime when) {
-		String sql = buildJoinSelect()
+		String sql = "SELECT * FROM " + tablename
 				+ " WHERE JOB.RUNNING=0 and JOB.DISABLED=0 and JOB.SUSPENDED=0 "
 				+ "  and JOB.NEXT_RUN <= ? "
 				+ " ORDER BY NEXT_RUN";
