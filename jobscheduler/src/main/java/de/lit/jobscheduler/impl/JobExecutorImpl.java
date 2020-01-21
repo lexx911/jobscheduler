@@ -90,6 +90,7 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 				jobExec.setStartTime(new Date());
 				jobExec.setStatus(RUNNING);
 				jobExec.setNodeName(nodeName);
+				jobExec.setSignOfLifeTime(new Date());
 				jobExec = jobExecutionDao.save(jobExec);
 				jobInst.setJobExecution(jobExec);
 				jobInst.setThread(t);
@@ -243,8 +244,14 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 	@Override
 	public void destroy() throws InterruptedException {
 		logger.info("Shutting down JobExecutor");
+		if (!runningJobs.isEmpty()) {
+			logger.warn("Waiting up to 3 minutes for {} currently running job{} to finish.",
+					runningJobs.size(), runningJobs.size() != 1 ? "s" : "");
+		}
 		shutdown();
-		if (!awaitTermination(3, TimeUnit.MINUTES)) {
+		if (awaitTermination(3, TimeUnit.MINUTES) || runningJobs.isEmpty()) {
+			logger.info("JobExecutor shutdown successful");
+		} else {
 			logger.info("JobExecutor now interrupting running jobs");
 			shutdownNow();
 			if (awaitTermination(60, TimeUnit.SECONDS)) {
@@ -252,8 +259,6 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 			} else {
 				logger.error("JobExecutor has hanging theads!");
 			}
-		} else {
-			logger.info("JobExecutor shutdown successful");
 		}
 		runningJobs.clear();
 	}

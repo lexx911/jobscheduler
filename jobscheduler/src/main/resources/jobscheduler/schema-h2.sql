@@ -23,6 +23,7 @@ create table job_execution
   start_time TIMESTAMP(6),
   status     varchar(20),
   job_name   varchar(50),
+  sign_of_life_time timestamp(6),
   primary key (id)
 );
 

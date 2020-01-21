@@ -32,6 +32,9 @@ public class JobExecution {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(columnDefinition = "TIMESTAMP(6)")
 	private Date endTime;
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(columnDefinition = "TIMESTAMP(6)")
+	private Date signOfLifeTime;
 
 	@Transient
 	private boolean interrupted = false;
@@ -112,5 +115,13 @@ public class JobExecution {
 
 	public void setEndTime(Date endTime) {
 		this.endTime = endTime;
+	}
+
+	public Date getSignOfLifeTime() {
+		return signOfLifeTime;
+	}
+
+	public void setSignOfLifeTime(Date signOfLifeTime) {
+		this.signOfLifeTime = signOfLifeTime;
 	}
 }

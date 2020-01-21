@@ -10,10 +10,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class JdbcJobExecutionDao implements JobExecutionDao {
@@ -48,6 +45,7 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 		params.put("END_TIME", entity.getEndTime());
 		params.put("MESSAGE", entity.getMessage());
 		params.put("NODE_NAME", entity.getNodeName());
+		params.put("SIGN_OF_LIFE_TIME", entity.getSignOfLifeTime());
 
 		if (idGenerator != null) {
 			entity.setId(idGenerator.get());
@@ -68,6 +66,7 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 						.set("END_TIME=?")
 						.set("MESSAGE=?")
 						.set("NODE_NAME=?")
+						.set("SIGN_OF_LIFE_TIME=?")
 						.where("ID=?")
 						.toString(),
 				entity.getStatus().name(),
@@ -75,7 +74,20 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 				entity.getEndTime(),
 				entity.getMessage(),
 				entity.getNodeName(),
+				entity.getSignOfLifeTime(),
 				entity.getId()
+		);
+	}
+
+	@Override
+	public int updateSignOfLife(Long id, Date timestamp) {
+		return jdbcTemplate.update(
+				new UpdateBuilder(tablename)
+						.set("SIGN_OF_LIFE_TIME=?")
+						.where("ID=?")
+						.toString(),
+				timestamp,
+				id
 		);
 	}
 
@@ -96,6 +108,7 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 		entity.setEndTime(rs.getTimestamp(columnNamePrefix + "END_TIME"));
 		entity.setMessage(rs.getString(columnNamePrefix + "MESSAGE"));
 		entity.setNodeName(rs.getString(columnNamePrefix + "NODE_NAME"));
+		entity.setSignOfLifeTime(rs.getTimestamp(columnNamePrefix + "SIGN_OF_LIFE_TIME"));
 		return entity;
 	}
 
@@ -148,6 +161,15 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 				.and("EXECUTION.NODE_NAME = ?")
 				.toString();
 		return jdbcTemplate.query(sql, new Object[]{status.name(), nodeName}, this::rowMapper);
+	}
+
+	@Override
+	public List<JobExecution> findAllByStatusAndSignOfLifeTimeBefore(JobExecution.Status status, Date before) {
+		String sql = buildJoinSelect()
+				.where("EXECUTION.STATUS = ?")
+				.and("EXECUTION.SIGN_OF_LIFE_TIME < ?")
+				.toString();
+		return jdbcTemplate.query(sql, new Object[]{status.name(), before}, this::rowMapper);
 	}
 
 	public String getTablename() {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<jpa:repositories base-package="de.lit.jobscheduler.dao" />
+
+	<bean id="jobExecutor" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="de.lit.jobscheduler.impl.JobExecutor" />
+	</bean>
+	<bean id="testjob1" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="de.lit.jobscheduler.Job" />
+	</bean>
+	<bean class="de.lit.jobscheduler.impl.JobScheduler" />
+
+	<bean id="consistencyCheck" class="de.lit.jobscheduler.impl.ConsistencyCheck"/>
+	<bean id="sentinel" class="de.lit.jobscheduler.impl.JobSentinelService"/>
+	<bean id="jobUtilityBean" class="de.lit.jobscheduler.JobUtilityBean"/>
+	<bean id="cronSchedule" class="de.lit.jobscheduler.CronSchedule"/>
+
+</beans>

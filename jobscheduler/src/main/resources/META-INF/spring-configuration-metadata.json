@@ -24,6 +24,41 @@
       "name": "application.jobexecutor.maxpoolsize",
       "type": "java.lang.Integer",
       "description": "Max number of threads in the thread execution pool. Default: 4"
+    },
+    {
+      "name": "application.jobscheduler.sentinel.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enable sentinel feature."
+    },
+    {
+      "name": "application.jobscheduler.sentinel.enable",
+      "type": "java.lang.Boolean",
+      "description": "Enable sentinel feature."
+    },
+    {
+      "name": "application.jobscheduler.sentinel.graceperiod",
+      "type": "java.lang.Long",
+      "description": "Period in minutes until a sign_of_life is considered old (dead). Default: 15"
+    },
+    {
+      "name": "application.jobscheduler.sentinel.update.initial",
+      "type": "java.lang.Long",
+      "description": "Initial delay in milliseconds until sentinel starts updating sign_of_life. Default: 60000"
+    },
+    {
+      "name": "application.jobscheduler.sentinel.update.interval",
+      "type": "java.lang.Long",
+      "description": "Interval in milliseconds for updating sign_of_life. Default: 20000"
+    },
+    {
+      "name": "application.jobscheduler.sentinel.initialDelay",
+      "type": "java.lang.Long",
+      "description": "Initial delay in milliseconds until sentinel starts checking for hanging jobs. Default: 70000"
+    },
+    {
+      "name": "application.jobscheduler.sentinel.runinterval",
+      "type": "java.lang.Long",
+      "description": "Interval in milliseconds for sentinel to check for hanging Jobs. Default: 900000 (15m)"
     }
   ]
 }

@@ -4,12 +4,12 @@ create table job
 	implementation varchar(255) null,
 	params varchar(4000) null,
 	cron_expression varchar(50) null,
-	`schedule` varchar(255) null,
 	next_run datetime null,
-	last_execution_id bigint null,
 	running bit not null,
 	disabled bit not null,
 	suspended bit not null,
+	`schedule` varchar(255) null,
+	last_execution_id bigint null,
 	error_mail_address varchar(255) null,
 	primary key(name)
 )
@@ -25,6 +25,7 @@ create table job_execution
 	status varchar(20) null,
 	message text null,
 	node_name varchar(255) null,
+  sign_of_life_time timestamp(6) null,
 	primary key(id),
 	key fk_job_execution_job (job_name),
   constraint fk_job_execution_job
