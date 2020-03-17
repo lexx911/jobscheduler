@@ -7,9 +7,9 @@
         <artifactId>jobscheduler-parent</artifactId>
         <version>1.2.1-SNAPSHOT</version>
     </parent>
-
     <artifactId>jobscheduler-jdbc</artifactId>
-    <name>jobscheduler-jdbc</name>
+
+    <name>jobscheduler (JDBC)</name>
     <description>JDBC extention for the Job Scheduler library</description>
     <url>https://github.com/lexx911/jobscheduler</url>
 
@@ -63,7 +63,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>5.1.7.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
