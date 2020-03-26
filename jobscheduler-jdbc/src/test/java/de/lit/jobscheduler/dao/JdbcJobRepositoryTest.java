@@ -38,7 +38,7 @@ public class JdbcJobRepositoryTest extends SpringDbUnitTestCase {
 
 		@Override
 		public Long get() {
-			return jdbcTemplate.queryForObject("SELECT job_execution_seq.nextval", Long.TYPE);
+			return jdbcTemplate.queryForObject("SELECT job_execution_seq.nextval from dual", Long.TYPE);
 		}
 	}
 
@@ -165,7 +165,7 @@ public class JdbcJobRepositoryTest extends SpringDbUnitTestCase {
 	}
 
 	private JobExecution createJobExecution() {
-		JobExecution exec = new JobExecution();
+		JobExecution exec = executionDao.create();
 		exec.setStatus(JobExecution.Status.RUNNING);
 		exec.setJobDefinition(createJobDefinition("__TEST2"));
 		exec.setStartTime(new Timestamp(System.currentTimeMillis() - 1234));

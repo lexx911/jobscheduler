@@ -21,8 +21,6 @@ import java.util.Optional;
 
 public class JdbcJobDefinitionDao implements JobDefinitionDao {
 
-	private final static String LAST_EXEC_COLUMN_PREFIX = "LE_";
-
 	private JdbcTemplate jdbcTemplate;
 	private String tablename = "JOB";
 
@@ -101,15 +99,19 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 		);
 	}
 
-	private JobDefinition rowMapper(ResultSet rs, int rowNum) throws SQLException {
+	protected JobDefinition rowMapper(ResultSet rs, int rowNum) throws SQLException {
 		JobDefinition entity = mapJobDefinition(rs, "");
 		if (rs.getObject("LAST_EXECUTION_ID") != null) {
-			JobExecution lastExecution = new JobExecution();
-			lastExecution.setId(rs.getLong("LAST_EXECUTION_ID"));
-			entity.setLastExecution(lastExecution);
-			lastExecution.setJobDefinition(entity);
+			setLastExecution(entity, rs.getLong("LAST_EXECUTION_ID"));
 		}
 		return entity;
+	}
+
+	protected void setLastExecution(JobDefinition entity, long lastExecutionId) {
+		JobExecution lastExecution = new JobExecution();
+		lastExecution.setId(lastExecutionId);
+		entity.setLastExecution(lastExecution);
+		lastExecution.setJobDefinition(entity);
 	}
 
 	public JobDefinition mapJobDefinition(ResultSet rs, String columnNamePrefix) throws SQLException {
@@ -201,8 +203,12 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 		);
 	}
 
-	private LocalDateTime toLocalDateTime(Timestamp timestamp) {
+	protected LocalDateTime toLocalDateTime(Timestamp timestamp) {
 		return timestamp != null ? timestamp.toLocalDateTime() : null;
+	}
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
 	}
 
 	public String getTablename() {

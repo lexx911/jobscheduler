@@ -77,7 +77,7 @@ public class JobRepositoryTest extends SpringDbUnitTestCase {
 	}
 
 	private JobExecution createJobExecution() {
-		JobExecution exec = new JobExecution();
+		JobExecution exec = executionDao.create();
 		exec.setStatus(JobExecution.Status.RUNNING);
 		exec.setJobDefinition(createJobDefinition("__TEST2"));
 		exec.setStartTime(new Timestamp(System.currentTimeMillis() - 1234));

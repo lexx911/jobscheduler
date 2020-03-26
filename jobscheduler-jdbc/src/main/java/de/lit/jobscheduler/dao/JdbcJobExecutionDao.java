@@ -28,6 +28,11 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 	}
 
 	@Override
+	public JobExecution create() {
+		return new JobExecution();
+	}
+
+	@Override
 	public JobExecution save(JobExecution entity) {
 		if (entity.getId() != null) {
 			update(entity);
@@ -91,7 +96,7 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 		);
 	}
 
-	private JobExecution rowMapper(ResultSet rs, int rowNum) throws SQLException {
+	protected JobExecution rowMapper(ResultSet rs, int rowNum) throws SQLException {
 		JobExecution entity = mapJobExecution(rs, "");
 		if (rs.getString("JOB_NAME") != null) {
 			JobDefinition job = jobDefinitionDao.mapJobDefinition(rs, JOBDEF_COLUMN_PREFIX);
@@ -101,7 +106,7 @@ public class JdbcJobExecutionDao implements JobExecutionDao {
 	}
 
 	public JobExecution mapJobExecution(ResultSet rs, String columnNamePrefix) throws SQLException {
-		JobExecution entity = new JobExecution();
+		JobExecution entity = create();
 		entity.setId(rs.getLong(columnNamePrefix + "ID"));
 		entity.setStatus(JobExecution.Status.valueOf(rs.getString(columnNamePrefix + "STATUS")));
 		entity.setStartTime(rs.getTimestamp(columnNamePrefix + "START_TIME"));

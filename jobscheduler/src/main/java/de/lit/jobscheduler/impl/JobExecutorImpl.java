@@ -85,7 +85,7 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 		synchronized (runningJobs) {
 			try {
 				logger.info("Starting Job \"{}\"", jobInst.getJob().getName());
-				JobExecution jobExec = new JobExecution();
+				JobExecution jobExec = jobExecutionDao.create();
 				jobExec.setJobDefinition(jobInst.getJob());
 				jobExec.setStartTime(new Date());
 				jobExec.setStatus(RUNNING);

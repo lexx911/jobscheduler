@@ -13,6 +13,8 @@ import static de.lit.jobscheduler.entity.JobExecution.Status.RUNNING;
 
 public interface JobExecutionDao {
 
+	JobExecution create();
+
 	/**
 	 * Saves a given entity. Use the returned instance for further operations as the save operation might have changed the
 	 * entity instance completely.

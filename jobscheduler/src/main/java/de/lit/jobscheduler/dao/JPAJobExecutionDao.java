@@ -12,6 +12,11 @@ import java.util.List;
 
 public interface JPAJobExecutionDao extends CrudRepository<JobExecution, Long>, JobExecutionDao {
 
+	@Override
+	default JobExecution create() {
+		return new JobExecution();
+	}
+
 	List<JobExecution> findAllByJobDefinitionAndStatus(JobDefinition job, JobExecution.Status status);
 
 	List<JobExecution> findAllByJobDefinitionName(String name);
