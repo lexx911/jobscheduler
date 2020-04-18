@@ -1,4 +1,4 @@
-# Database Job Scheduler
+# Database Job Scheduler ![version badge](https://img.shields.io/maven-central/v/de.laetsch-it.jobscheduler/jobscheduler?label=latest%20version)
 
 ## Overview
 This library provides a job scheduling mechanism for 
