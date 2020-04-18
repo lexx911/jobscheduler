@@ -1,6 +1,6 @@
 # Database Job Scheduler
 
-This is the plain JDBC variant of the [jobscheduler](..) library.
+This is the plain JDBC variant of the [jobscheduler](/../../) library.
 
 ## Installation
 
