@@ -31,11 +31,6 @@
       "description": "Enable sentinel feature."
     },
     {
-      "name": "application.jobscheduler.sentinel.enable",
-      "type": "java.lang.Boolean",
-      "description": "Enable sentinel feature."
-    },
-    {
       "name": "application.jobscheduler.sentinel.graceperiod",
       "type": "java.lang.Long",
       "description": "Period in minutes until a sign_of_life is considered old (dead). Default: 15"
