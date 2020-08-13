@@ -6,7 +6,6 @@ package de.lit.jobscheduler.impl;
 import de.lit.jobscheduler.JobLifecycleCallback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
@@ -28,24 +27,20 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 
 	private int queueCapacity = 0;
 
-	private static JobExecutorImpl instance = null;
+	private JobExecutorImpl instance = null;
 
 	private JobLifecycleCallback lifecycleCallback;
 
-	private ApplicationContext appContext;
-
 	@Override
 	protected synchronized ExecutorService initializeExecutor(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
-		if (instance == null) {
-			BlockingQueue<Runnable> queue = createQueue(this.queueCapacity);
-			instance = new JobExecutorImpl(corePoolSize, maxPoolSize,
-					keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler);
-			if (this.allowCoreThreadTimeOut) {
-				instance.allowCoreThreadTimeOut(true);
-			}
-			if (lifecycleCallback != null) {
-				instance.setLifecycleCallback(lifecycleCallback);
-			}
+		BlockingQueue<Runnable> queue = createQueue(this.queueCapacity);
+		instance = new JobExecutorImpl(corePoolSize, maxPoolSize,
+				keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler);
+		if (this.allowCoreThreadTimeOut) {
+			instance.allowCoreThreadTimeOut(true);
+		}
+		if (lifecycleCallback != null) {
+			instance.setLifecycleCallback(lifecycleCallback);
 		}
 		return instance;
 	}
@@ -73,24 +68,21 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 	}
 
 	/**
-	 * @param corePoolSize
-	 *            The ThreadPoolExecutor's core pool size. Default is 1.
+	 * @param corePoolSize The ThreadPoolExecutor's core pool size. Default is 1.
 	 */
 	public void setCorePoolSize(int corePoolSize) {
 		this.corePoolSize = corePoolSize;
 	}
 
 	/**
-	 * @param maxPoolSize
-	 *            The ThreadPoolExecutor's maximum pool size. Default is 4.
+	 * @param maxPoolSize The ThreadPoolExecutor's maximum pool size. Default is 4.
 	 */
 	public void setMaxPoolSize(int maxPoolSize) {
 		this.maxPoolSize = maxPoolSize;
 	}
 
 	/**
-	 * @param keepAliveSeconds
-	 *            The ThreadPoolExecutor's keep-alive seconds. Default is 60.
+	 * @param keepAliveSeconds The ThreadPoolExecutor's keep-alive seconds. Default is 60.
 	 */
 	public void setKeepAliveSeconds(int keepAliveSeconds) {
 		this.keepAliveSeconds = keepAliveSeconds;
@@ -100,9 +92,8 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 	 * Specify whether to allow core threads to time out. This enables dynamic
 	 * growing and shrinking even in combination with a non-zero queue (since
 	 * the max pool size will only grow once the queue is full).
-	 * 
-	 * @param allowCoreThreadTimeOut
-	 *            Boolean. Default is "false".
+	 *
+	 * @param allowCoreThreadTimeOut Boolean. Default is "false".
 	 * @see java.util.concurrent.ThreadPoolExecutor#allowCoreThreadTimeOut(boolean)
 	 */
 	public void setAllowCoreThreadTimeOut(boolean allowCoreThreadTimeOut) {
@@ -118,8 +109,7 @@ public class JobExecutorFactoryBean extends ExecutorConfigurationSupport {
 	 * will be rejected to run but may be executed on a different node or at a later
 	 * time.
 	 *
-	 * @param queueCapacity
-	 *            capacity Default is {@code 0}.
+	 * @param queueCapacity capacity Default is {@code 0}.
 	 * @see java.util.concurrent.LinkedBlockingQueue
 	 * @see java.util.concurrent.SynchronousQueue
 	 */
