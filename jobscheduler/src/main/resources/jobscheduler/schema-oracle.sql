@@ -15,7 +15,7 @@ CREATE TABLE JOB (
 );
 
 CREATE TABLE JOB_EXECUTION (
-   ID         NUMBER NOT NULL,
+   ID         NUMBER GENERATED ALWAYS AS IDENTITY NOT NULL,
    JOB_NAME   VARCHAR2(50 CHAR) NOT NULL,
    STATUS     VARCHAR2(20 CHAR),
    START_TIME TIMESTAMP(6),
@@ -34,13 +34,10 @@ alter table JOB_EXECUTION add
    constraint FK_EXECUTION_JOB
       foreign key (JOB_NAME) references job on delete cascade;
 
-create sequence JOB_EXECUTION_SEQ start with 1 increment by 1;
 
 /* Granting rights to other application user:
 
 GRANT SELECT,INSERT,UPDATE,DELETE ON JOB TO someuser;
 GRANT SELECT,INSERT,UPDATE,DELETE ON JOB_EXECUTION TO someuser;
-
-GRANT SELECT ON JOB_EXECUTION_SEQ TO someuser;
 
  */

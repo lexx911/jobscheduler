@@ -12,7 +12,7 @@ public class JobExecution {
 	}
 
 	@Id
-	@GeneratedValue(generator = "job_execution_seq")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne

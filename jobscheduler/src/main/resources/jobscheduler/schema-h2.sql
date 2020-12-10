@@ -16,7 +16,7 @@ create table job
 
 create table job_execution
 (
-  id         bigint not null,
+  id         bigint generated always as identity not null,
   end_time   TIMESTAMP(6),
   message    varchar(4000),
   node_name  varchar(255),
