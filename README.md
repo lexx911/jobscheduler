@@ -41,7 +41,7 @@ Include maven dependency in your pom.xml:
        <dependency>
            <groupId>de.laetsch-it.jobscheduler</groupId>
            <artifactId>jobscheduler</artifactId>
-           <version>1.2.1</version>
+           <version>1.3.0</version>
        </dependency>
    ```
 
