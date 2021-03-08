@@ -14,15 +14,23 @@ import java.util.List;
 
 public interface JPAJobDefinitionDao extends CrudRepository<JobDefinition, String>, JobDefinitionDao {
 
-	@Query("FROM JobDefinition "
-			+ " WHERE running=0 and disabled=0 and suspended=0 "
-			+ "  and nextRun <= ?1 "
-			+ " ORDER BY nextRun")
+	@Query("FROM JobDefinition a "
+			+ " WHERE a.running=0 and a.disabled=0 and a.suspended=0 "
+			+ "  and a.nextRun <= ?1 "
+			+ "  and not exists("
+			+ "    SELECT 1 FROM JobDefinition x"
+			+ "    WHERE x.runQueue = a.runQueue and x.running = 1"
+			+ "  ) "
+			+ " ORDER BY a.nextRun")
 	List<JobDefinition> findAllDue(LocalDateTime when);
 
 	@Query("FROM JobDefinition WHERE name=?1")
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	JobDefinition lockJob(String name);
+
+	@Query("FROM JobDefinition WHERE runQueue=?1")
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	List<JobDefinition> lockRunQueue(String queue);
 
 	@Modifying
 	@Transactional

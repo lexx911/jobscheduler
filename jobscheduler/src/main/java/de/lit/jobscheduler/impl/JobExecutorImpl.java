@@ -23,8 +23,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static de.lit.jobscheduler.entity.JobExecution.Status.*;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 
 public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, DisposableBean {
 	private final Logger logger = LoggerFactory.getLogger(JobExecutorImpl.class);
@@ -55,6 +54,11 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 	@Override
 	@Transactional
 	public void submitJob(JobInstance instance) throws RejectedExecutionException {
+		if (!checkQueueIdle(instance.getJob().getRunQueue())) {
+			logger.debug("Job {} not executed because queue {} has running job",
+					instance.getJob().getName(), instance.getJob().getRunQueue());
+			return;
+		}
 		JobDefinition job = jobDao.lockJob(instance.getJob().getName());
 		if (job.isRunning() || (job.getNextRun() != null && job.getNextRun().isAfter(LocalDateTime.now()))) {
 			logger.debug("Job {} not executed by this thread", job.getName());
@@ -62,6 +66,12 @@ public class JobExecutorImpl extends ThreadPoolExecutor implements JobExecutor, 
 		}
 		JobExecutorImpl.this.execute(instance);
 		job.setRunning(true);
+	}
+
+	private boolean checkQueueIdle(String runQueue) {
+		if (isBlank(runQueue)) return true;
+		List<JobDefinition> queue = jobDao.lockRunQueue(runQueue);
+		return queue.stream().noneMatch(JobDefinition::isRunning);
 	}
 
 	@Override

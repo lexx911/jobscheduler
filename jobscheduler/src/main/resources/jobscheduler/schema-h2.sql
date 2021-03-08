@@ -10,6 +10,7 @@ create table job
   running            boolean     not null,
   schedule           varchar(255),
   suspended          boolean     not null,
+  run_queue          varchar(255),
   last_execution_id  bigint,
   primary key (name)
 );

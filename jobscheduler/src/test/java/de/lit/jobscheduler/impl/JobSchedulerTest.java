@@ -31,7 +31,10 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 	@Autowired
 	private JobScheduler jobScheduler;
 
-	private static int execCount = 0;
+	private static int parallelCount = 0;
+	private static int maxParallelCount = 0;
+	private static int job1Count = 0;
+	private static int job2Count = 0;
 
 	@Bean
 	public Job testjob1() {
@@ -41,12 +44,34 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 							job.getJobDefinition().getName(),
 							job.getNodeName()
 					));
+			parallelCount++;
+			maxParallelCount = Math.max(maxParallelCount, parallelCount);
 			Thread.sleep(250);
-			execCount++;
+			job1Count++;
+			maxParallelCount = Math.max(maxParallelCount, parallelCount);
+			parallelCount--;
 		};
 	}
 
-	private static LocalDateTime dummyNextRun = LocalDateTime.of(2099,4,1,11,11);
+	@Bean
+	public Job testjob2() {
+		return job -> {
+			logger.info(
+					String.format("Job %s is running on %s",
+							job.getJobDefinition().getName(),
+							job.getNodeName()
+					));
+			parallelCount++;
+			maxParallelCount = Math.max(maxParallelCount, parallelCount);
+			Thread.sleep(250);
+			job2Count++;
+			maxParallelCount = Math.max(maxParallelCount, parallelCount);
+			parallelCount--;
+		};
+	}
+
+	private static LocalDateTime dummyNextRun = LocalDateTime.of(2099, 4, 1, 11, 11);
+
 	@Bean
 	public JobSchedule dummySchedule() {
 		return new JobSchedule() {
@@ -64,12 +89,13 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 
 	@Before
 	public void setup() {
-		execCount = 0;
+		job1Count = job2Count = 0;
+		parallelCount = maxParallelCount = 0;
 	}
 
 	@Test
 	@DatabaseSetup("testjob1.dataset.xml")
-	public void testConcurrent() throws Exception {
+	public void testConcurrentSingleJob() throws Exception {
 		int upd = jobDao.runJobNow("testjob1");
 		assertEquals("testjob1", 1, upd);
 
@@ -80,19 +106,79 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		t2.start();
 
 		waitForCondition(10, i ->
-				execCount > 0 && !jobDao.findById("testjob1").orElseThrow(AssertionError::new).isRunning()
+				job1Count > 0 && !jobDao.findById("testjob1").orElseThrow(AssertionError::new).isRunning()
 		);
 
 		t1.join(1000);
 		t2.join(1000);
 		Thread.sleep(500);
 
-		assertEquals("execCount", 1, execCount);
+		assertEquals("job1Count", 1, job1Count);
 		JobDefinition job = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
 		assertNotNull("testjob1", job);
 		assertNotNull("last execution", job.getLastExecution());
 		logger.info("Job execution status: " + job.getLastExecution().getStatus());
 		assertEquals("execution status", JobExecution.Status.SUCCESS, job.getLastExecution().getStatus());
+	}
+
+	@Test
+	@DatabaseSetup("testjob12.dataset.xml")
+	public void testConcurrentTwoJobs() throws Exception {
+		int upd = jobDao.runJobNow("testjob1");
+		assertEquals("testjob1", 1, upd);
+		upd = jobDao.runJobNow("testjob2");
+		assertEquals("testjob2", 1, upd);
+
+		Thread t1 = new Thread(jobScheduler::run);
+		Thread t2 = new Thread(jobScheduler::run);
+
+		t1.start();
+		t2.start();
+
+		waitForCondition(10, i ->
+				job1Count > 0 && job2Count > 0
+		);
+
+		t1.join(1000);
+		t2.join(1000);
+		Thread.sleep(500);
+
+		assertEquals("job1Count", 1, job1Count);
+		assertEquals("job2Count", 1, job2Count);
+		assertEquals("parallel", 2, maxParallelCount);
+		JobDefinition job1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		JobDefinition job2 = jobDao.findById("testjob2").orElseThrow(AssertionError::new);
+		assertEquals("job1 status", JobExecution.Status.SUCCESS, job1.getLastExecution().getStatus());
+		assertEquals("job2 status", JobExecution.Status.SUCCESS, job2.getLastExecution().getStatus());
+	}
+
+	@Test
+	@DatabaseSetup("testjob-singleq.dataset.xml")
+	public void testConcurrentSingleQueue() throws Exception {
+		int upd = jobDao.runJobNow("testjob1");
+		assertEquals("testjob1", 1, upd);
+		upd = jobDao.runJobNow("testjob2");
+		assertEquals("testjob2", 1, upd);
+
+		Thread t1 = new Thread(jobScheduler::run);
+		Thread t2 = new Thread(jobScheduler::run);
+
+		t1.start();
+		t2.start();
+
+		waitForCondition(10, i ->
+				job1Count > 0 || job2Count > 0
+		);
+
+		t1.join(1000);
+		t2.join(1000);
+		Thread.sleep(500);
+
+		assertEquals("only one job", 1, job1Count + job2Count);
+		assertEquals("parallel", 1, maxParallelCount);
+		JobDefinition job1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
+		JobDefinition job2 = jobDao.findById("testjob2").orElseThrow(AssertionError::new);
+		assertTrue("only one job execution", job1.getLastExecution() == null || job2.getLastExecution() == null);
 	}
 
 	@Test
@@ -106,7 +192,7 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		jobScheduler.run();
 
 		Thread.sleep(500);
-		assertEquals("execCount", 0, execCount);
+		assertEquals("job1Count", 0, job1Count);
 		testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
 		assertNotNull("testjob1", testjob1);
 		assertEquals("nextRun", dummyNextRun, testjob1.getNextRun());
@@ -124,15 +210,14 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 			jobScheduler.setJobImplementationProvider(jobDefinition -> job -> {
 				logger.info("Running custom Job implementation");
 				Thread.sleep(250);
-				execCount += 100;
+				job1Count += 100;
 			});
 
 			jobScheduler.run();
 
 			Thread.sleep(500);
-			assertEquals("execCount", 100, execCount);
-		}
-		finally {
+			assertEquals("job1Count", 100, job1Count);
+		} finally {
 			jobScheduler.setJobImplementationProvider(old);
 		}
 	}
@@ -148,7 +233,7 @@ public class JobSchedulerTest extends SpringDbUnitTestCase {
 		jobScheduler.run();
 
 		Thread.sleep(500);
-		assertEquals("execCount", 0, execCount);
+		assertEquals("job1Count", 0, job1Count);
 		testjob1 = jobDao.findById("testjob1").orElseThrow(AssertionError::new);
 		assertNotNull("testjob1", testjob1);
 		assertNull("nextRun", testjob1.getNextRun());

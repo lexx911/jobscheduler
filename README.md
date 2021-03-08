@@ -21,17 +21,24 @@ configured and managed with a database table.
 | --------------- | -------- | ----------- |
 | NAME            | VARCHAR  | Unique Name of Job (Primary Key) |
 | CRON_EXPRESSION | VARCHAR  | 6 Fields separated by space: second minute hour day month weekday. See [Quartz CronExpression](http://www.quartz-scheduler.org/api/2.3.0/org/quartz/CronExpression.html) |
-| IMPLEMENTATION  | VARCHAR  | Spring Bean name of Job implentation |
+| IMPLEMENTATION  | VARCHAR  | Spring Bean name of Job implementation |
 | NEXT_RUN        | TIMESTAMP| Time for next run, evaluated from cron expression or schedule on every run |
 | SCHEDULE        | VARCHAR  | Optional: bean name for schedule. Default: CronSchedule |
 | PARAMS          | VARCHAR  | Optional: Parameters for Job implementation |
-| RUNNING         | BOOLEAN  | Set if Job is running |
-| SUSPENDED       | BOOLEAN  | Set to temp. suspend Job |
-| DISABLED        | BOOLEAN  | Set to permanently disable Job |
+| RUNNING         | BOOLEAN  | Set by scheduler if Job is running |
+| SUSPENDED       | BOOLEAN  | Temporarily suspend a Job |
+| DISABLED        | BOOLEAN  | Permanently disable a Job |
+| RUN_QUEUE       | VARCHAR  | Optional: Group Jobs in queues for serial execution. See below. |
 | LAST_EXECUTION_ID| NUMBER  | Reference to last execution |
 | ERROR_MAIL_ADDRESS|VARCHAR | Optional, not used by Jobscheduler. May be used by JobLifecycleCallback |
 
 Every Job execution is logged in `JOB_EXECUTION` Table
+
+### Run queues
+
+You can group several jobs into run queues. Within one run queue no jobs will run in parallel. In other words, a job
+will not run if there is another running job with the same run queue. Jobs with different or empty (null) run queues
+will run in parallel to each other.
 
 ## Installation
 
@@ -41,7 +48,7 @@ Include maven dependency in your pom.xml:
        <dependency>
            <groupId>de.laetsch-it.jobscheduler</groupId>
            <artifactId>jobscheduler</artifactId>
-           <version>1.3.0</version>
+           <version>1.4.0</version>
        </dependency>
    ```
 

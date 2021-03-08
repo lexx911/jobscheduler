@@ -46,6 +46,8 @@ public class JobDefinition {
 
     private boolean disabled;
 
+    private String runQueue;
+
     private String errorMailAddress;
 
     @ManyToOne
@@ -144,6 +146,14 @@ public class JobDefinition {
 
     public void setParams(String params) {
         this.params = params;
+    }
+
+    public String getRunQueue() {
+        return runQueue;
+    }
+
+    public void setRunQueue(String runQueue) {
+        this.runQueue = runQueue;
     }
 
     public String getErrorMailAddress() {

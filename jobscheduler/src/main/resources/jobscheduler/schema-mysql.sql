@@ -9,6 +9,7 @@ create table job
 	disabled bit not null,
 	suspended bit not null,
 	`schedule` varchar(255) null,
+	run_queue varchar(255) null,
 	last_execution_id bigint null,
 	error_mail_address varchar(255) null,
 	primary key(name)

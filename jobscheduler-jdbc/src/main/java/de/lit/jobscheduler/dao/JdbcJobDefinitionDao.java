@@ -138,17 +138,21 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 
 	@Override
 	public Optional<JobDefinition> findById(String name) {
-		String sql = "SELECT * FROM " + tablename + " WHERE JOB.NAME = ? ";
+		String sql = "SELECT * FROM " + tablename + " WHERE NAME = ? ";
 		return Optional.ofNullable(
 				jdbcTemplate.queryForObject(sql, new Object[]{name}, this::rowMapper)
 		);
 	}
 
 	public List<JobDefinition> findAllDue(LocalDateTime when) {
-		String sql = "SELECT * FROM " + tablename
-				+ " WHERE JOB.RUNNING=0 and JOB.DISABLED=0 and JOB.SUSPENDED=0 "
-				+ "  and JOB.NEXT_RUN <= ? "
-				+ " ORDER BY NEXT_RUN";
+		String sql = "SELECT * FROM " + tablename + " a"
+				+ " WHERE a.RUNNING=0 and a.DISABLED=0 and a.SUSPENDED=0 "
+				+ "  and a.NEXT_RUN <= ? "
+				+ "  and NOT EXISTS("
+				+ "    SELECT 1 FROM " + tablename + " x"
+				+ "    WHERE x.RUN_QUEUE = a.RUN_QUEUE and x.running = 1"
+				+ "  ) "
+				+ " ORDER BY a.NEXT_RUN";
 		return jdbcTemplate.query(sql, new Object[]{when}, this::rowMapper);
 	}
 
@@ -157,6 +161,12 @@ public class JdbcJobDefinitionDao implements JobDefinitionDao {
 		String sql = "SELECT JOB.* FROM " + tablename + " JOB WHERE JOB.NAME = ? FOR UPDATE";
 		return jdbcTemplate.queryForObject(sql, new Object[]{name},
 				(rs, rowNum) -> mapJobDefinition(rs, ""));
+	}
+
+	@Transactional(propagation = Propagation.MANDATORY)
+	public List<JobDefinition> lockRunQueue(String queue) {
+		String sql = "SELECT JOB.* FROM " + tablename + " JOB WHERE JOB.RUN_QUEUE = ? FOR UPDATE";
+		return jdbcTemplate.query(sql, new Object[]{queue}, this::rowMapper);
 	}
 
 	@Transactional

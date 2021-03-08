@@ -49,6 +49,14 @@ public interface JobDefinitionDao {
 	JobDefinition lockJob(String name);
 
 	/**
+	 * Lock all Jobs of the specified queue.
+	 * {@code SELECT * FROM JobDefinition WHERE runQueue=?1 FOR UPDATE}
+	 * @param runQueue the queue to search for
+	 * @return all Jobs in queue
+	 */
+	List<JobDefinition> lockRunQueue(String runQueue);
+
+	/**
 	 * {@code UPDATE JobDefinition SET suspended=0, nextRun=current_timestamp WHERE name=?}
 	 */
 	int runJobNow(String name);
