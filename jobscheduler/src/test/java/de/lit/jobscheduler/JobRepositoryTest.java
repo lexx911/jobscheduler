@@ -4,19 +4,17 @@ import de.lit.jobscheduler.dao.JobDefinitionDao;
 import de.lit.jobscheduler.dao.JobExecutionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
-import org.junit.Test;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ContextConfiguration
-public class JobRepositoryTest extends SpringDbUnitTestCase {
+public class JobRepositoryTest extends SpringTestCase {
 
 	@Autowired
 	private JobDefinitionDao jobDao;
@@ -34,15 +32,15 @@ public class JobRepositoryTest extends SpringDbUnitTestCase {
 		job = jobDao.save(job);
 		em.flush();
 
-		assertFalse("running", job.isRunning());
+		assertFalse(job.isRunning());
 
 		job = jobDao.lockJob(job.getName());
 		job.setRunning(true);
 		job = jobDao.save(job);
 		em.flush();
 
-		assertEquals("name", "__TEST1", job.getName());
-		assertTrue("running", job.isRunning());
+		assertEquals("__TEST1", job.getName(), "name");
+		assertTrue(job.isRunning());
 	}
 
 	@Test

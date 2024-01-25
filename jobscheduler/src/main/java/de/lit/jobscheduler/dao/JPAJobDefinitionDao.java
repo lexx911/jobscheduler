@@ -2,24 +2,24 @@ package de.lit.jobscheduler.dao;
 
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface JPAJobDefinitionDao extends CrudRepository<JobDefinition, String>, JobDefinitionDao {
 
 	@Query("FROM JobDefinition a "
-			+ " WHERE a.running=0 and a.disabled=0 and a.suspended=0 "
+			+ " WHERE a.running=false and a.disabled=false and a.suspended=false "
 			+ "  and a.nextRun <= ?1 "
 			+ "  and not exists("
 			+ "    SELECT 1 FROM JobDefinition x"
-			+ "    WHERE x.runQueue = a.runQueue and x.running = 1"
+			+ "    WHERE x.runQueue = a.runQueue and x.running = true"
 			+ "  ) "
 			+ " ORDER BY a.nextRun")
 	List<JobDefinition> findAllDue(LocalDateTime when);
@@ -34,7 +34,7 @@ public interface JPAJobDefinitionDao extends CrudRepository<JobDefinition, Strin
 
 	@Modifying
 	@Transactional
-	@Query("UPDATE JobDefinition SET suspended=0, nextRun=current_timestamp WHERE name=?1")
+	@Query("UPDATE JobDefinition SET suspended=false, nextRun=current_timestamp WHERE name=?1")
 	int runJobNow(String name);
 
 	@Modifying
@@ -44,12 +44,12 @@ public interface JPAJobDefinitionDao extends CrudRepository<JobDefinition, Strin
 
 	@Modifying
 	@Transactional
-	@Query("UPDATE JobDefinition SET running=1, lastExecution=?2 where name=?1")
+	@Query("UPDATE JobDefinition SET running=true, lastExecution=?2 where name=?1")
 	int updateStartExecution(String name, JobExecution jobExecution);
 
 	@Modifying
 	@Transactional
-	@Query("UPDATE JobDefinition SET running=0, nextRun=?2 where name=?1")
+	@Query("UPDATE JobDefinition SET running=false, nextRun=?2 where name=?1")
 	int updateForNextRun(String name, LocalDateTime nextRun);
 
 	@Modifying

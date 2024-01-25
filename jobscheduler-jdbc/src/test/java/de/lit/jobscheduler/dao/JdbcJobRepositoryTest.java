@@ -1,8 +1,6 @@
 package de.lit.jobscheduler.dao;
 
 import de.lit.jobscheduler.SpringDbUnitTestCase;
-import de.lit.jobscheduler.dao.JobDefinitionDao;
-import de.lit.jobscheduler.dao.JobExecutionDao;
 import de.lit.jobscheduler.entity.JobDefinition;
 import de.lit.jobscheduler.entity.JobExecution;
 import org.junit.Test;

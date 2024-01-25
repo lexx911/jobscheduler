@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataset>
-	<job name="testjob1" implementation="testjob1" cron_expression="0 0 0 1 1 ?" next_run="2050-12-31 12:00:00" running="1" disabled="0" suspended="0"/>
-	<job_execution id="100" job_name="testjob1" start_time="2020-01-01 12:05:00" status="RUNNING" node_name="testnode" sign_of_life_time="2020-01-01 12:15:25"/>
-</dataset>
-

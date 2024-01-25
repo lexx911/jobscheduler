@@ -1,26 +1,22 @@
 package de.lit.jobscheduler;
 
 import de.lit.jobscheduler.dao.JobDefinitionDao;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(SpringRunner.class)
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = TestApplication.class)
 @EnableJobScheduler
 public class SpringConfigurationTest {
 	private final Logger logger = LoggerFactory.getLogger(SpringConfigurationTest.class);
-
-	static {
-		SpringDbUnitTestCase.initSystemProperties();
-	}
 
 	@Autowired
 	private JobDefinitionDao jobDao;
@@ -31,8 +27,8 @@ public class SpringConfigurationTest {
 
 	@Test
 	public void contextLoads() {
-		assertNotNull("jobScheduler", config);
-		assertNotNull("jobDao", jobDao);
+		assertNotNull(config, "jobScheduler");
+		assertNotNull(jobDao, "jobDao");
 		logger.info("Spring context successfully loaded");
 	}
 }

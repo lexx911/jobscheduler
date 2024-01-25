@@ -1,22 +1,27 @@
 package de.lit.jobscheduler.impl;
 
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-import de.lit.jobscheduler.SpringDbUnitTestCase;
+import de.lit.jobscheduler.Job;
+import de.lit.jobscheduler.SpringTestCase;
 import de.lit.jobscheduler.entity.JobExecution;
-import org.junit.Test;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import javax.persistence.EntityManager;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration
-public class JobSentinelServiceTest extends SpringDbUnitTestCase {
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
+@TestPropertySource(properties = "application.jobscheduler.sentinel.enable=true")
+public class JobSentinelServiceTest extends SpringTestCase {
 
 	@Autowired
 	private JobSentinelService jobSentinelService;
@@ -24,11 +29,14 @@ public class JobSentinelServiceTest extends SpringDbUnitTestCase {
 	@Autowired
 	private EntityManager em;
 
-	@Autowired
+	@MockBean
 	private JobExecutor jobExecutorMock;
 
+	@MockBean(name = "testjob1")
+	private Job testjob1;
+
 	@Test
-	@DatabaseSetup("testexecution1.dataset.xml")
+	@Sql("testexecution1.dataset.sql")
 	public void signOfLifeUpdate() {
 		JobInstance instance = setupRunningExecution(100);
 		JobExecution exec = instance.getJobExecution();
@@ -41,7 +49,7 @@ public class JobSentinelServiceTest extends SpringDbUnitTestCase {
 	}
 
 	@Test
-	@DatabaseSetup("testexecution2.dataset.xml")
+	@Sql("testexecution2.dataset.sql")
 	public void resetDeadJobs() {
 		JobInstance instance = setupRunningExecution(100);
 		JobExecution exec = instance.getJobExecution();
